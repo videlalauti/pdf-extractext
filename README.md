@@ -18,4 +18,3 @@ Extraer un texto de un PDF que es proprcionado por el usuario. Despúes se hace 
 - DRY
 - YAGNI
 - SOLID
-## Hola profe
