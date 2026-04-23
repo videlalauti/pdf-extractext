@@ -28,3 +28,20 @@ class PdfTooLargeError(DomainError):
         self.max_size_bytes = max_size_bytes
         self.actual_size_bytes = actual_size_bytes
         super().__init__(message)
+
+
+class PdfExtractionError(DomainError):
+    """Exception raised when text extraction from PDF fails.
+
+    Attributes:
+        message: Descripción del error
+        original_error: Excepción original que causó el error (opcional)
+    """
+
+    def __init__(
+        self,
+        message: str = "Error al extraer texto del PDF",
+        original_error: Exception | None = None,
+    ):
+        self.original_error = original_error
+        super().__init__(message)
