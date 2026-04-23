@@ -2,9 +2,20 @@
 
 API para extracción y procesamiento de PDFs construida con **FastAPI** y **Clean Architecture**.
 
-## Descripción
+## Integrantes del Grupo
 
-Extraer un texto de un PDF que es proporcionado por el usuario. Después se hace un resumen gracias a un modelo de IA.
+| Apellido y Nombre | Legajo |
+|-------------------|--------|
+| Arccidiacono Fabricio | - |
+| Lasagno Valentino | - |
+| Martinez José Antonio | - |
+| Sabio Videla Lautaro | - |
+
+*Carrera: Ingenieria en Sistemas - Desarrollo de Software*
+
+## Descripcion
+
+Extraer un texto de un PDF que es proporcionado por el usuario. Despues se hace un resumen gracias a un modelo de IA.
 
 ## Tecnologías
 
@@ -21,12 +32,158 @@ Extraer un texto de un PDF que es proporcionado por el usuario. Después se hace
 - GitHub Project Management
 - **12-Factor App**
 
-## Principios de Programación
+## Principios de Programacion
 
 - **KISS** (Keep It Simple, Stupid)
 - **DRY** (Don't Repeat Yourself)
 - **YAGNI** (You Aren't Gonna Need It)
 - **SOLID**
+
+---
+
+## Requerimientos
+
+### Software Necesario
+
+| Requerimiento | Version | Descripcion |
+|---------------|---------|-------------|
+| Python | 3.11+ | Lenguaje de programacion |
+| UV | Ultima version | Gestor de paquetes Python |
+| Docker | 20.10+ | Contenedorizacion (opcional pero recomendado) |
+| Docker Compose | 2.0+ | Orquestacion de servicios |
+| Git | 2.30+ | Control de versiones |
+
+### Requerimientos de Hardware
+
+- **Minimo:** 4GB RAM, 2 CPUs, 10GB espacio libre
+- **Recomendado:** 8GB RAM, 4 CPUs, 20GB espacio libre
+
+### Dependencias del Proyecto
+
+Las dependencias estan definidas en `pyproject.toml`:
+
+**Produccion:**
+- FastAPI >= 0.115.0
+- Uvicorn >= 0.32.0
+- Pydantic >= 2.9.0
+- PyMongo >= 4.9.0
+- Motor >= 3.6.0
+- PyPDF >= 5.0.0
+
+**Desarrollo:**
+- Pytest >= 9.0.2
+- Pytest-asyncio >= 1.3.0
+- HTTPX >= 0.28.1
+- Pytest-cov >= 6.1.1
+
+---
+
+## Instalacion y Configuracion
+
+### Paso 1: Clonar el Repositorio
+
+```bash
+git clone <URL_DEL_REPOSITORIO>
+cd pdf-extractext
+```
+
+### Paso 2: Instalar UV (Gestor de Paquetes)
+
+**Windows (PowerShell):**
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+**Linux/Mac:**
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### Paso 3: Configurar Variables de Entorno
+
+Copiar el archivo de ejemplo:
+
+```bash
+# Windows
+copy .env.example .env
+
+# Linux/Mac
+cp .env.example .env
+```
+
+Editar el archivo `.env` con los valores correspondientes:
+
+```env
+APP_NAME="PDF ExtractExt"
+VERSION="0.1.0"
+DESCRIPTION="API para extraccion y procesamiento de PDFs"
+DEBUG=true
+HOST=0.0.0.0
+PORT=8000
+MONGODB_HOST=localhost
+MONGODB_PORT=27017
+MONGODB_ROOT_USERNAME=admin
+MONGODB_ROOT_PASSWORD=changeme
+MONGODB_DATABASE_NAME=pdf_extractext
+MONGODB_AUTH_SOURCE=admin
+UPLOAD_PATH=./uploads
+```
+
+### Paso 4: Instalar Dependencias
+
+```bash
+uv sync --dev
+```
+
+---
+
+## Ejecucion de la Aplicacion
+
+### Opcion 1: Usando Docker Compose (Recomendado)
+
+Esta opcion levanta automaticamente MongoDB y la aplicacion.
+
+```bash
+docker-compose up --build
+```
+
+**Servicios disponibles:**
+- API: http://localhost:8000
+- MongoDB: localhost:27017
+- Swagger UI: http://localhost:8000/docs
+
+```bash
+# Ver logs
+docker-compose logs -f app
+
+# Detener servicios
+docker-compose down
+```
+
+### Opcion 2: Instalacion Local (Desarrollo)
+
+**Paso 1: Iniciar MongoDB**
+
+Si no tienes MongoDB instalado, usa Docker:
+
+```bash
+docker run -d --name mongodb -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=changeme mongo:7.0
+```
+
+**Paso 2: Ejecutar la Aplicacion**
+
+```bash
+# Con hot-reload (desarrollo)
+uv run uvicorn src.interface_adapters.http.main:app --reload --host 0.0.0.0 --port 8000
+
+# Sin reload (produccion)
+uv run uvicorn src.interface_adapters.http.main:app --host 0.0.0.0 --port 8000
+```
+
+**La API estara disponible en:**
+- API Base: http://localhost:8000
+- Documentacion Swagger: http://localhost:8000/docs
+- Documentacion ReDoc: http://localhost:8000/redoc
 
 ---
 
@@ -148,7 +305,7 @@ uv run pytest
 uv run pytest tests/unit/ -v
 ```
 
-### Tests de integración
+### Tests de integracion
 
 ```bash
 uv run pytest tests/integration/ -v
@@ -157,7 +314,7 @@ uv run pytest tests/integration/ -v
 ### Con cobertura
 
 ```bash
-uv run pytest --cov=. --cov-report=html
+uv run pytest --cov=src --cov-report=html
 ```
 
 ---
