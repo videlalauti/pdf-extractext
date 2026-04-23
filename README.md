@@ -8,8 +8,9 @@ API para extracción y procesamiento de PDFs construida con **FastAPI** y **Clea
 |-------------------|--------|
 | Arccidiacono Fabricio | - |
 | Lasagno Valentino | - |
-| Martinez José Antonio | - |
-| Sabio Videla Lautaro | - |
+| Martinez José | - |
+| Sabio Antonio | - |
+| Videla Lautaro | - |
 
 *Carrera: Ingenieria en Sistemas - Desarrollo de Software*
 
