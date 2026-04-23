@@ -1,1 +1,0 @@
-"""Implementaciones concretas de repositorios."""

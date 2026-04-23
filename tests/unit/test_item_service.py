@@ -4,11 +4,9 @@ from uuid import uuid4
 
 import pytest
 
-from src.models.item import Item
-from src.repositories.implementations.in_memory_item_repository import (
-    InMemoryItemRepository,
-)
-from src.services.implementations.item_service import ItemService
+from src.application.services.item_service import ItemService
+from src.domain.entities.item import Item
+from src.interface_adapters.database.in_memory_item_repository import InMemoryItemRepository
 
 
 class TestItemService:
@@ -74,9 +72,7 @@ class TestItemService:
         """Debe actualizar un item existente."""
         created = service.create_item(name="Original", description="Original desc")
 
-        updated = service.update_item(
-            created.id, name="Updated", description="New desc"
-        )
+        updated = service.update_item(created.id, name="Updated", description="New desc")
 
         assert updated is not None
         assert updated.name == "Updated"

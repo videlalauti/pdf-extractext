@@ -1,0 +1,1 @@
+"""Value Objects del dominio."""
