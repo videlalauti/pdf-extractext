@@ -45,3 +45,10 @@ class PdfExtractionError(DomainError):
     ):
         self.original_error = original_error
         super().__init__(message)
+
+
+class ValidationError(DomainError):
+    """Exception raised when validation of a domain entity fails."""
+
+    def __init__(self, message: str = "Validation failed"):
+        super().__init__(message)
