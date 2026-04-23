@@ -19,7 +19,7 @@ class DocumentRepository(ABC):
     """
 
     @abstractmethod
-    def save(self, document: Document) -> Document:
+    async def save(self, document: Document) -> Document:
         """Guarda un documento en el repositorio.
 
         Args:
@@ -31,7 +31,7 @@ class DocumentRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_id(self, document_id: UUID) -> Optional[Document]:
+    async def find_by_id(self, document_id: UUID) -> Optional[Document]:
         """Busca un documento por su identificador.
 
         Args:
@@ -43,7 +43,7 @@ class DocumentRepository(ABC):
         pass
 
     @abstractmethod
-    def find_all(self) -> List[Document]:
+    async def find_all(self) -> List[Document]:
         """Recupera todos los documentos.
 
         Returns:
@@ -52,7 +52,7 @@ class DocumentRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_filename(self, filename: str) -> Optional[Document]:
+    async def find_by_filename(self, filename: str) -> Optional[Document]:
         """Busca un documento por su nombre de archivo.
 
         Args:
@@ -64,13 +64,25 @@ class DocumentRepository(ABC):
         pass
 
     @abstractmethod
-    def delete(self, document_id: UUID) -> bool:
+    async def delete(self, document_id: UUID) -> bool:
         """Elimina un documento por su identificador.
 
         Args:
             document_id: UUID del documento a eliminar.
 
         Returns:
-            bool: True si se eliminó, False si no existía.
+            bool: True si se elimino, False si no existia.
+        """
+        pass
+
+    @abstractmethod
+    async def exists_by_checksum(self, checksum: str) -> bool:
+        """Verifica si existe un documento con el checksum dado.
+
+        Args:
+            checksum: Checksum del archivo a verificar.
+
+        Returns:
+            bool: True si existe un documento con ese checksum.
         """
         pass
