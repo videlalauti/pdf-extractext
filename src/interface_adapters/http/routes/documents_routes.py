@@ -4,19 +4,28 @@ from http import HTTPStatus
 from typing import List
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
+from src.application.services.pdf_text_extractor import PdfTextExtractor
+from src.application.services.pdf_validator import PdfValidator
 from src.application.use_cases.delete_document import (
     DeleteDocumentUseCase,
     DocumentNotFoundError,
 )
 from src.application.use_cases.get_document import GetDocumentUseCase
 from src.application.use_cases.list_documents import ListDocumentsUseCase
+from src.application.use_cases.save_document import (
+    DuplicateDocumentError,
+    SaveDocumentUseCase,
+)
 from src.application.use_cases.update_document import (
     UpdateDocumentUseCase,
     DocumentNotFoundError as UpdateNotFoundError,
 )
+from src.application.use_cases.upload_document import UploadDocumentUseCase
+from src.domain.exceptions import InvalidPdfFormatError, PdfTooLargeError
 from src.domain.repositories.document_repository import DocumentRepository
+from src.infrastructure.adapters.pypdf_text_extractor import PyPdfTextExtractor
 from src.interface_adapters.database.repository_provider import get_document_repository
 from src.interface_adapters.http.schemas.document_schemas import (
     DocumentResponse,
@@ -52,6 +61,73 @@ def get_delete_use_case(
 ) -> DeleteDocumentUseCase:
     """Proveedor de dependencia para el caso de uso de eliminar."""
     return DeleteDocumentUseCase(repository)
+
+
+def get_upload_use_case(
+    repository: DocumentRepository = Depends(get_document_repository),
+) -> UploadDocumentUseCase:
+    """Proveedor de dependencia para el caso de uso de subir documentos.
+
+    Configura el flujo completo de upload con:
+    - Validador de PDFs
+    - Extractor de texto (PyPDF)
+    - Caso de uso de guardado con verificación de duplicados
+    """
+    validator = PdfValidator()
+    extractor_adapter = PyPdfTextExtractor()
+    extractor = PdfTextExtractor(extractor_adapter=extractor_adapter)
+    save_use_case = SaveDocumentUseCase(repository=repository)
+    return UploadDocumentUseCase(
+        validator=validator,
+        extractor=extractor,
+        save_use_case=save_use_case,
+    )
+
+
+@router.post("/upload", response_model=DocumentResponse, status_code=HTTPStatus.CREATED)
+async def upload_document(
+    file: UploadFile,
+    use_case: UploadDocumentUseCase = Depends(get_upload_use_case),
+) -> DocumentResponse:
+    """Sube y procesa un archivo PDF.
+
+    Orquesta el flujo completo:
+    1. Valida formato y tamaño del PDF
+    2. Extrae texto del documento
+    3. Genera checksum y verifica duplicados
+    4. Persiste el documento
+
+    Args:
+        file: Archivo PDF subido por el usuario
+
+    Returns:
+        DocumentResponse: Documento procesado y guardado
+
+    Raises:
+        HTTPException: 400 si el PDF es inválido o excede tamaño
+        HTTPException: 409 si el documento ya existe (checksum duplicado)
+        HTTPException: 500 si ocurre un error en el procesamiento
+    """
+    content = await file.read()
+
+    try:
+        document = await use_case.execute(content)
+        return DocumentResponse.from_entity(document)
+    except InvalidPdfFormatError as error:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=str(error),
+        ) from error
+    except PdfTooLargeError as error:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail=str(error),
+        ) from error
+    except DuplicateDocumentError as error:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail=f"Document already exists with checksum: {error.checksum}",
+        ) from error
 
 
 @router.get("", response_model=List[DocumentResponse])

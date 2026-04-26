@@ -13,6 +13,7 @@ dependencies = [
     "pymongo>=4.9.0",
     "motor>=3.6.0",
     "pypdf>=5.0.0",
+    "python-multipart>=0.0.20",
 ]
 
 [project.optional-dependencies]
