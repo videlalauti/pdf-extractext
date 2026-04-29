@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     DATABASE_URL: str = ""
     DATABASE_NAME: str = "pdf_extractext"
 
+    # PDF Configuration
+    MAX_PDF_SIZE_BYTES: int = 10 * 1024 * 1024  # 10MB default
+
     # Storage
     UPLOAD_PATH: str = "./uploads"
 

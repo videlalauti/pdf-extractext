@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from src.domain.exceptions import InvalidPdfFormatError, PdfTooLargeError
+from src.infrastructure.config.settings import settings
 
 
 @dataclass(frozen=True)
@@ -29,13 +30,13 @@ class PdfValidator:
 
     PDF_MAGIC_NUMBER = b"%PDF-"
 
-    def __init__(self, max_size_bytes: int = 10 * 1024 * 1024):
+    def __init__(self, max_size_bytes: Optional[int] = None):
         """Initialize validator with size limit.
 
         Args:
-            max_size_bytes: Maximum allowed file size (default 10MB)
+            max_size_bytes: Maximum allowed file size (default from settings)
         """
-        self.max_size_bytes = max_size_bytes
+        self.max_size_bytes = max_size_bytes or settings.MAX_PDF_SIZE_BYTES
 
     def validate(self, file_content: bytes) -> PdfValidationResult:
         """Validate PDF file content without raising exceptions.
