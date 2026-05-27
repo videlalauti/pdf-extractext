@@ -1,5 +1,5 @@
 # Etapa de construcción
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
 
 # Configurar uv
 ENV UV_COMPILE_BYTECODE=1 \
@@ -23,7 +23,7 @@ COPY main.py ./
 RUN uv sync --frozen --no-dev
 
 # Etapa de producción
-FROM python:3.11-slim-bookworm AS production
+FROM python:3.14-slim-bookworm AS production
 
 # Configurar Python
 ENV PYTHONDONTWRITEBYTECODE=1 \
