@@ -44,6 +44,9 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+    user: "1000:1000"
+    security_opt:
+      - no-new-privileges:true
     restart: unless-stopped
     networks:
       - pdf-extractext-network
