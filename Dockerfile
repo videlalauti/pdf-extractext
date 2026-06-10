@@ -20,10 +20,16 @@ RUN uv sync --frozen --no-dev
 
 FROM python:3.14-slim-bookworm AS production
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
+ENV TZ=America/Argentina/Buenos_Aires \
+    PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONFAULTHANDLER=1 \
     PATH="/app/.venv/bin:$PATH"
+
+RUN apt-get update && apt-get install -y --no-install-recommends tzdata && \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 

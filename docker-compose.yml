@@ -38,6 +38,9 @@ services:
       - MONGODB_ROOT_USERNAME=${MONGODB_ROOT_USERNAME}
       - MONGODB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
       - MONGODB_DATABASE_NAME=${MONGODB_DATABASE_NAME}
+      - TZ=${TZ:-UTC}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
     depends_on:
       mongodb:
         condition: service_healthy
@@ -45,7 +48,7 @@ services:
     networks:
       - pdf-extractext-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      test: ["CMD", "sh", "-c", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" && date -Iseconds"]
       interval: 30s
       timeout: 10s
       retries: 3
