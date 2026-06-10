@@ -22,6 +22,7 @@ services:
       - pdf-extractext-network
 
   app:
+    image: "pdf-extractext:${VERSION:-latest}"
     build:
       context: .
       dockerfile: Dockerfile
