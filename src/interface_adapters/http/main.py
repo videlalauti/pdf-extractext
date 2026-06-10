@@ -26,6 +26,26 @@ async def lifespan(app: FastAPI):
     logger.info(f"Shutting down {settings.app_name}")
 
 
+def add_exception_handlers(app: FastAPI) -> None:
+    from fastapi.responses import JSONResponse
+
+    from src.domain.exceptions.base import ProblemDetailsException
+
+    @app.exception_handler(ProblemDetailsException)
+    async def problem_details_handler(request, exc: ProblemDetailsException):
+        return JSONResponse(
+            status_code=exc.status,
+            content={
+                "type": exc.type_uri,
+                "title": exc.title,
+                "status": exc.status,
+                "detail": exc.detail,
+                "instance": exc.instance,
+            },
+            media_type="application/problem+json",
+        )
+
+
 def create_application() -> FastAPI:
     """Crea y configura la instancia de FastAPI.
 
@@ -44,6 +64,7 @@ def create_application() -> FastAPI:
     # Agregar middleware de logging
     app.add_middleware(LoggingMiddleware)
 
+    add_exception_handlers(app)
     register_routers(app)
 
     return app
