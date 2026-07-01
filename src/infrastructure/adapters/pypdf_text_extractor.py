@@ -79,9 +79,27 @@ class PyPdfTextExtractor:
             # Unir todo el texto con saltos de línea entre páginas
             return "\n".join(extracted_texts)
 
+    def extract_text_from_file(self, file_path: str) -> str:
+        """Extrae texto plano de un PDF proporcionado como ruta de archivo.
+
+        Lee el archivo del disco y procesa el PDF utilizando pypdf.
+
+        Args:
+            file_path: Ruta del archivo PDF en disco.
+
+        Returns:
+            str: Texto plano extraído del documento. Si el PDF no contiene
+                 texto o está compuesto solo de imágenes, retorna string vacío.
+
+        Raises:
+            PdfExtractionError: Si el PDF está corrupto, malformado, o si
+                               ocurre cualquier error durante la extracción.
+        """
+        try:
+            with open(file_path, "rb") as f:
+                pdf_bytes = f.read()
+            return self.extract_text_from_bytes(pdf_bytes)
         except Exception as error:
-            # Convertimos excepciones de pypdf a excepciones de dominio
-            # para mantener la independencia de la infraestructura
             raise PdfExtractionError(
                 message=f"Error al extraer texto con pypdf: {str(error)}",
                 original_error=error,

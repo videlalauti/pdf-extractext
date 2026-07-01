@@ -43,39 +43,29 @@ class PdfTextExtractor:
         """
         self._extractor_adapter = extractor_adapter
 
-    def extract_text(self, pdf_bytes: bytes) -> str:
-        """Extrae texto plano de un PDF proporcionado como bytes.
+    def extract_text_from_file(self, file_path: str) -> str:
+        """Extrae texto plano de un PDF proporcionado como ruta de archivo.
 
         Este método:
-        1. Valida que los bytes no estén vacíos (validación básica)
+        1. Lee el archivo del disco
         2. Delega la extracción al adaptador configurado
         3. Propaga errores de extracción como excepciones de dominio
 
         Args:
-            pdf_bytes: Contenido binario del PDF. Debe ser previamente validado
-                      como PDF válido (ej: por PdfValidator) antes de llamar
-                      este método.
+            file_path: Ruta del archivo PDF en disco.
 
         Returns:
             str: Texto plano extraído del documento. Retorna string vacío
                  si el PDF no contiene texto extraíble.
 
         Raises:
-            ValueError: Si pdf_bytes está vacío o es None.
             PdfExtractionError: Si ocurre un error durante la extracción del texto.
-
-        Note:
-            El procesamiento es estrictamente en memoria. El documento nunca
-            se persiste temporalmente en disco durante este proceso.
         """
-        if not pdf_bytes:
-            raise ValueError("Los bytes del PDF no pueden estar vacíos")
-
         try:
+            with open(file_path, "rb") as f:
+                pdf_bytes = f.read()
             return self._extractor_adapter.extract_text_from_bytes(pdf_bytes)
         except Exception as error:
-            # Envolvemos la excepción en una excepción de dominio
-            # para mantener la independencia de la capa de aplicación
             raise PdfExtractionError(
                 message=f"Error al extraer texto del PDF: {str(error)}",
                 original_error=error,

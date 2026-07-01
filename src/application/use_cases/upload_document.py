@@ -6,6 +6,9 @@ Este caso de uso orquesta el flujo completo de upload:
 3. Persistencia con verificación de duplicados (checksum)
 """
 
+import os
+import uuid
+
 from dataclasses import dataclass
 
 from src.application.services.pdf_text_extractor import PdfTextExtractor
@@ -79,13 +82,25 @@ class UploadDocumentUseCase:
         # Paso 1: Validar el PDF (formato y tamaño)
         self._validator.validate_or_raise(pdf_bytes)
 
-        # Paso 2: Extraer texto del PDF
-        extracted_text = self._extractor.extract_text(pdf_bytes)
+        temp_path = None
+        try:
+            # Paso 2: Guardar PDF temporalmente en disco
+            temp_dir = "/tmp/pdf_uploads"
+            os.makedirs(temp_dir, exist_ok=True)
+            temp_path = os.path.join(temp_dir, f"{uuid.uuid4()}.pdf")
+            with open(temp_path, "wb") as f:
+                f.write(pdf_bytes)
 
-        # Paso 3: Guardar el documento (con verificación de duplicados)
-        document = await self._save_use_case.execute(
-            pdf_bytes=pdf_bytes,
-            content=extracted_text,
-        )
+            # Paso 3: Extraer texto del PDF desde archivo temporal
+            extracted_text = self._extractor.extract_text_from_file(temp_path)
 
-        return document
+            # Paso 4: Guardar el documento (con verificación de duplicados)
+            document = await self._save_use_case.execute(
+                pdf_bytes=pdf_bytes,
+                content=extracted_text,
+            )
+
+            return document
+        finally:
+            if temp_path and os.path.exists(temp_path):
+                os.remove(temp_path)
