@@ -1,0 +1,30 @@
+api:
+  dashboard: true
+  insecure: true
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  file:
+    filename: /etc/traefik/config.yml
+    watch: true
+  docker:
+    exposedByDefault: false
+    network: mired
+
+tls:
+  certificates:
+    - certFile: /etc/certs/cert.pem
+      keyFile: /etc/certs/key.pem
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /etc/certs/cert.pem
+        keyFile: /etc/certs/key.pem
+
+log:
+  level: INFO
