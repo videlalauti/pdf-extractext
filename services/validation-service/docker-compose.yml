@@ -1,0 +1,23 @@
+services:
+  validation-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pdf-validation-service:latest
+    container_name: pdf-validation-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    deploy:
+      replicas: 1
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.validation-service.rule=Host(`validation.localhost`)"
+      - "traefik.http.routers.validation-service.entrypoints=web"
+      - "traefik.http.services.validation-service.loadbalancer.server.port=8000"
+    networks:
+      - mired
+
+networks:
+  mired:
+    driver: bridge
