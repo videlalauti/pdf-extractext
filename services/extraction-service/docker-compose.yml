@@ -1,0 +1,23 @@
+services:
+  extraction-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: pdf-extraction-service:latest
+    container_name: pdf-extraction-service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    deploy:
+      replicas: 1
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.extraction-service.rule=Host(`extraction.localhost`)"
+      - "traefik.http.routers.extraction-service.entrypoints=web"
+      - "traefik.http.services.extraction-service.loadbalancer.server.port=8000"
+    networks:
+      - mired
+
+networks:
+  mired:
+    driver: bridge
