@@ -7,7 +7,7 @@ services:
     container_name: pdf-persistence-service
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8003:8000"
     deploy:
       replicas: 1
     labels:
@@ -20,4 +20,4 @@ services:
 
 networks:
   mired:
-    driver: bridge
+    external: true

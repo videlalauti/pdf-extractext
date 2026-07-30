@@ -82,6 +82,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Document Persistence Service", version="1.0.0", lifespan=lifespan)
 
 
+@app.get("/health")
+async def health():
+    return {"status": "healthy", "service": "persistence-service"}
+
+
 class DocumentCreate(BaseModel):
     id: Optional[str] = None
     content: str

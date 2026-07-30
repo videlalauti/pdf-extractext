@@ -7,7 +7,9 @@ services:
     container_name: pdf-extraction-service
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8002:8000"
+    environment:
+      - PERSISTENCE_SERVICE_URL=http://persistence.localhost
     deploy:
       replicas: 1
     labels:
@@ -20,4 +22,4 @@ services:
 
 networks:
   mired:
-    driver: bridge
+    external: true
