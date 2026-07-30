@@ -1,68 +1,88 @@
+version: "3.8"
+
+include:
+  - infrastructure/traefik/docker-compose.yml
+  - infrastructure/mongodb/docker-compose.yml
+
 services:
-  mongodb:
-    image: mongo:7.0
-    container_name: pdf-extractext-mongodb
-    restart: unless-stopped
-    ports:
-      - "${MONGODB_PORT:-27017}:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_ROOT_USERNAME:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_ROOT_PASSWORD:-changeme}
-      MONGO_INITDB_DATABASE: ${MONGODB_DATABASE_NAME:-pdf_extractext}
-    volumes:
-      - mongodb_data:/data/db
-      - mongodb_config:/data/configdb
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - pdf-extractext-network
-
-  app:
-    image: "pdf-extractext:${VERSION:-latest}"
+  validation-service:
     build:
-      context: .
+      context: ./services/validation-service
       dockerfile: Dockerfile
-    ports:
-      - "${PORT:-8000}:8000"
-    environment:
-      - APP_NAME=${APP_NAME:-PDF ExtractExt}
-      - DEBUG=${DEBUG:-false}
-      - DATABASE_URL=${DATABASE_URL}
-      - DATABASE_NAME=${DATABASE_NAME}
-      - MONGODB_HOST=mongodb
-      - MONGODB_PORT=27017
-      - MONGODB_ROOT_USERNAME=${MONGODB_ROOT_USERNAME}
-      - MONGODB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
-      - MONGODB_DATABASE_NAME=${MONGODB_DATABASE_NAME}
-      - TZ=${TZ:-UTC}
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    user: "1000:1000"
-    security_opt:
-      - no-new-privileges:true
+    image: pdf-validation-service:latest
+    container_name: validation-service
     restart: unless-stopped
+    environment:
+      - EXTRACTION_SERVICE_URL=http://extraction.pdf.localhost
+    deploy:
+      replicas: 2
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.validation-service.rule=Host(`validation.pdf.localhost`)"
+      - "traefik.http.routers.validation-service.entrypoints=web"
+      - "traefik.http.routers.validation-service.tls=true"
+      - "traefik.http.middlewares.validation-cb.circuitbreaker.expression=NetworkErrorRatio() > 0.5"
+      - "traefik.http.routers.validation-service.middlewares=validation-cb"
+      - "traefik.http.services.validation-service.loadbalancer.server.port=8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
     networks:
-      - pdf-extractext-network
-    healthcheck:
-      test: ["CMD", "sh", "-c", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" && date -Iseconds"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - mired
 
-volumes:
-  mongodb_data:
-    driver: local
-  mongodb_config:
-    driver: local
+  extraction-service:
+    build:
+      context: ./services/extraction-service
+      dockerfile: Dockerfile
+    image: pdf-extraction-service:latest
+    container_name: extraction-service
+    restart: unless-stopped
+    environment:
+      - PERSISTENCE_SERVICE_URL=http://persistence.pdf.localhost
+    deploy:
+      replicas: 2
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.extraction-service.rule=Host(`extraction.pdf.localhost`)"
+      - "traefik.http.routers.extraction-service.entrypoints=web"
+      - "traefik.http.routers.extraction-service.tls=true"
+      - "traefik.http.middlewares.extraction-cb.circuitbreaker.expression=NetworkErrorRatio() > 0.5"
+      - "traefik.http.routers.extraction-service.middlewares=extraction-cb"
+      - "traefik.http.services.extraction-service.loadbalancer.server.port=8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - mired
+
+  persistence-service:
+    build:
+      context: ./services/persistence-service
+      dockerfile: Dockerfile
+    image: pdf-persistence-service:latest
+    container_name: persistence-service
+    restart: unless-stopped
+    environment:
+      - MONGODB_HOST=mongo
+      - MONGODB_PORT=27017
+      - MONGODB_ROOT_USERNAME=${ROOT_USERNAME:-admin}
+      - MONGODB_ROOT_PASSWORD=${ROOT_PASSWORD:-changeme}
+    deploy:
+      replicas: 2
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.persistence-service.rule=Host(`persistence.pdf.localhost`)"
+      - "traefik.http.routers.persistence-service.entrypoints=web"
+      - "traefik.http.routers.persistence-service.tls=true"
+      - "traefik.http.middlewares.persistence-cb.circuitbreaker.expression=NetworkErrorRatio() > 0.5"
+      - "traefik.http.routers.persistence-service.middlewares=persistence-cb"
+      - "traefik.http.services.persistence-service.loadbalancer.server.port=8000"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - mired
 
 networks:
-  pdf-extractext-network:
-    driver: bridge
+  mired:
+    external: true
