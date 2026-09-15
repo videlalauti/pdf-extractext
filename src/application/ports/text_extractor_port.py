@@ -27,7 +27,7 @@ class TextExtractorPort(Protocol):
         True
     """
 
-    def extract_text_from_bytes(self, pdf_bytes: bytes) -> str:
+    async def extract_text_from_bytes(self, pdf_bytes: bytes) -> str:
         """Extrae texto plano de un documento en formato bytes.
 
         Args:

@@ -12,7 +12,6 @@ from io import BytesIO
 
 from pypdf import PdfReader
 
-from src.application.ports.text_extractor_port import TextExtractorPort
 from src.domain.exceptions import PdfExtractionError
 
 
@@ -38,7 +37,7 @@ class PyPdfTextExtractor:
         BytesIO, sin crear archivos temporales en disco.
     """
 
-    def extract_text_from_bytes(self, pdf_bytes: bytes) -> str:
+    async def extract_text_from_bytes(self, pdf_bytes: bytes) -> str:
         """Extrae texto plano de un PDF proporcionado como bytes.
 
         Utiliza pypdf.PdfReader para procesar el documento en memoria
@@ -84,10 +83,11 @@ class PyPdfTextExtractor:
                 original_error=error,
             ) from error
 
-    def extract_text_from_file(self, file_path: str) -> str:
+    async def extract_text_from_file(self, file_path: str) -> str:
         """Extrae texto plano de un PDF proporcionado como ruta de archivo.
 
-        Lee el archivo del disco y procesa el PDF utilizando pypdf.
+        Lee el archivo del disco y delega el procesamiento del PDF a
+        extract_text_from_bytes (la extracción en sí ocurre en memoria).
 
         Args:
             file_path: Ruta del archivo PDF en disco.
@@ -103,7 +103,7 @@ class PyPdfTextExtractor:
         try:
             with open(file_path, "rb") as f:
                 pdf_bytes = f.read()
-            return self.extract_text_from_bytes(pdf_bytes)
+            return await self.extract_text_from_bytes(pdf_bytes)
         except Exception as error:
             raise PdfExtractionError(
                 message=f"Error al extraer texto con pypdf: {str(error)}",

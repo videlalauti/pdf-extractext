@@ -11,7 +11,6 @@ from src.application.services.pdf_validator import PdfValidator
 from src.application.use_cases.delete_document import DeleteDocumentUseCase
 from src.application.use_cases.get_document import GetDocumentUseCase
 from src.application.use_cases.list_documents import ListDocumentsUseCase
-from src.application.use_cases.save_document import SaveDocumentUseCase
 from src.application.use_cases.update_document import UpdateDocumentUseCase
 from src.application.use_cases.upload_document import UploadDocumentUseCase
 from src.domain.exceptions import (
@@ -68,16 +67,15 @@ def get_upload_use_case(
     Configura el flujo completo de upload con:
     - Validador de PDFs
     - Extractor de texto (PyPDF)
-    - Caso de uso de guardado con verificación de duplicados
+    - Repositorio con verificación de duplicados
     """
     validator = PdfValidator(max_size_bytes=settings.MAX_PDF_SIZE_BYTES)
     extractor_adapter = PyPdfTextExtractor()
     extractor = PdfTextExtractor(extractor_adapter=extractor_adapter)
-    save_use_case = SaveDocumentUseCase(repository=repository)
     return UploadDocumentUseCase(
-        validator=validator,
+        repository=repository,
         extractor=extractor,
-        save_use_case=save_use_case,
+        validator=validator,
     )
 
 
@@ -108,7 +106,7 @@ async def upload_document(
     content = await file.read()
 
     try:
-        document = await use_case.execute(content)
+        document = await use_case.execute(content, file.filename)
         return DocumentResponse.from_entity(document)
     except InvalidPdfFormatError as error:
         raise HTTPException(

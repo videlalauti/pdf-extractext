@@ -14,11 +14,11 @@ from src.domain.exceptions import PdfExtractionError
 
 
 class PdfTextExtractor:
-    """Caso de uso: Extraer texto plano de un documento PDF.
+    """Servicio de aplicación: Extraer texto plano de un documento PDF.
 
-    Este servicio representa un caso de uso de la capa de aplicación
-    que orquesta el flujo de extracción de texto manteniendo la lógica
+    Orquesta el flujo de extracción de texto manteniendo la lógica
     de negocio (dominio) separada de los detalles de implementación.
+    Trabaja únicamente con bytes en memoria, sin I/O de disco.
 
     Attributes:
         _extractor_adapter: Adaptador que implementa TextExtractorPort
@@ -26,7 +26,7 @@ class PdfTextExtractor:
     Example:
         >>> from src.application.ports.text_extractor_port import TextExtractorPort
         >>> extractor = PdfTextExtractor(extractor_adapter=extractor_adapter)
-        >>> text = extractor.extract_text_from_file("sample.pdf")
+        >>> text = await extractor.extract_text_from_bytes(pdf_bytes)
     """
 
     def __init__(self, extractor_adapter: TextExtractorPort) -> None:
@@ -43,16 +43,15 @@ class PdfTextExtractor:
         """
         self._extractor_adapter = extractor_adapter
 
-    def extract_text_from_file(self, file_path: str) -> str:
-        """Extrae texto plano de un PDF proporcionado como ruta de archivo.
+    async def extract_text_from_bytes(self, pdf_bytes: bytes) -> str:
+        """Extrae texto plano de un PDF proporcionado como bytes.
 
         Este método:
-        1. Lee el archivo del disco
-        2. Delega la extracción al adaptador configurado
-        3. Propaga errores de extracción como excepciones de dominio
+        1. Delega la extracción al adaptador configurado
+        2. Propaga errores de extracción como excepciones de dominio
 
         Args:
-            file_path: Ruta del archivo PDF en disco.
+            pdf_bytes: Contenido binario del PDF.
 
         Returns:
             str: Texto plano extraído del documento. Retorna string vacío
@@ -62,9 +61,7 @@ class PdfTextExtractor:
             PdfExtractionError: Si ocurre un error durante la extracción del texto.
         """
         try:
-            with open(file_path, "rb") as f:
-                pdf_bytes = f.read()
-            return self._extractor_adapter.extract_text_from_bytes(pdf_bytes)
+            return await self._extractor_adapter.extract_text_from_bytes(pdf_bytes)
         except Exception as error:
             raise PdfExtractionError(
                 message=f"Error al extraer texto del PDF: {str(error)}",
