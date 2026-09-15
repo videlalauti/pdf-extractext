@@ -78,6 +78,11 @@ class PyPdfTextExtractor:
 
             # Unir todo el texto con saltos de línea entre páginas
             return "\n".join(extracted_texts)
+        except Exception as error:
+            raise PdfExtractionError(
+                message=f"Error al extraer texto con pypdf: {str(error)}",
+                original_error=error,
+            ) from error
 
     def extract_text_from_file(self, file_path: str) -> str:
         """Extrae texto plano de un PDF proporcionado como ruta de archivo.
