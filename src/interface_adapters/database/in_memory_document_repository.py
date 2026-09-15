@@ -49,18 +49,6 @@ class InMemoryDocumentRepository(DocumentRepository):
         """
         return list(self._documents.values())
 
-    async def find_by_filename(self, filename: str) -> Optional[Document]:
-        """Busca un documento por su nombre de archivo.
-
-        Args:
-            filename: Nombre del archivo.
-
-        Returns:
-            Optional[Document]: Documento encontrado o None.
-        """
-        # En esta implementación en memoria no almacenamos filenames
-        return None
-
     async def delete(self, document_id: UUID) -> bool:
         """Elimina un documento.
 

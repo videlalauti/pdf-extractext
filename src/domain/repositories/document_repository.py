@@ -52,18 +52,6 @@ class DocumentRepository(ABC):
         pass
 
     @abstractmethod
-    async def find_by_filename(self, filename: str) -> Optional[Document]:
-        """Busca un documento por su nombre de archivo.
-
-        Args:
-            filename: Nombre del archivo.
-
-        Returns:
-            Optional[Document]: Documento encontrado o None.
-        """
-        pass
-
-    @abstractmethod
     async def delete(self, document_id: UUID) -> bool:
         """Elimina un documento por su identificador.
 

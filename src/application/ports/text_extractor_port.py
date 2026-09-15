@@ -6,7 +6,6 @@ debe cumplir, permitiendo que la capa de aplicación permanezca
 independiente de las implementaciones concretas de extracción.
 """
 
-from abc import ABC, abstractmethod
 from typing import Protocol, runtime_checkable
 
 
@@ -42,27 +41,3 @@ class TextExtractorPort(Protocol):
             ValueError: Si el input es inválido.
         """
         ...
-
-
-class AbstractTextExtractor(ABC):
-    """Clase abstracta base para adaptadores de extracción.
-
-    Proporciona una implementación de referencia para casos donde
-    se prefiere herencia sobre protocolos.
-    """
-
-    @abstractmethod
-    def extract_text_from_bytes(self, pdf_bytes: bytes) -> str:
-        """Extrae texto plano de un documento en formato bytes.
-
-        Args:
-            pdf_bytes: Contenido binario del documento PDF.
-
-        Returns:
-            str: Texto plano extraído del documento.
-
-        Raises:
-            PdfExtractionError: Si ocurre un error durante la extracción.
-            ValueError: Si el input es inválido.
-        """
-        pass
