@@ -41,10 +41,8 @@ class TestSaveDocumentUseCase:
     @pytest.mark.asyncio
     async def test_rechaza_documento_duplicado_por_checksum(self):
         """Test: Debe rechazar si el checksum ya existe en el repositorio."""
-        from src.application.use_cases.save_document import (
-            SaveDocumentUseCase,
-            DuplicateDocumentError,
-        )
+        from src.application.use_cases.save_document import SaveDocumentUseCase
+        from src.domain.exceptions import DuplicateDocumentError
 
         mock_repo = create_autospec(DocumentRepository, instance=True)
         mock_repo.exists_by_checksum = AsyncMock(return_value=True)

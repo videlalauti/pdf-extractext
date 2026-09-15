@@ -11,15 +11,7 @@ from uuid import uuid4
 
 from src.domain.entities.document import Document
 from src.domain.repositories.document_repository import DocumentRepository
-from src.domain.exceptions import DomainError
-
-
-class DuplicateDocumentError(DomainError):
-    """Excepcion cuando se intenta guardar un documento duplicado."""
-
-    def __init__(self, checksum: str):
-        self.checksum = checksum
-        super().__init__(f"Documento con checksum {checksum} ya existe")
+from src.domain.exceptions import DuplicateDocumentError
 
 
 @dataclass

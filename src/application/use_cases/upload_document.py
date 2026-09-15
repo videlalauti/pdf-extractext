@@ -13,9 +13,9 @@ from dataclasses import dataclass
 
 from src.application.services.pdf_text_extractor import PdfTextExtractor
 from src.application.services.pdf_validator import PdfValidator
-from src.application.use_cases.save_document import DuplicateDocumentError, SaveDocumentUseCase
+from src.application.use_cases.save_document import SaveDocumentUseCase
 from src.domain.entities.document import Document
-from src.domain.exceptions import InvalidPdfFormatError, PdfTooLargeError
+from src.domain.exceptions import DuplicateDocumentError, InvalidPdfFormatError, PdfTooLargeError
 
 
 @dataclass

@@ -8,22 +8,18 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
 from src.application.services.pdf_text_extractor import PdfTextExtractor
 from src.application.services.pdf_validator import PdfValidator
-from src.application.use_cases.delete_document import (
-    DeleteDocumentUseCase,
-    DocumentNotFoundError,
-)
+from src.application.use_cases.delete_document import DeleteDocumentUseCase
 from src.application.use_cases.get_document import GetDocumentUseCase
 from src.application.use_cases.list_documents import ListDocumentsUseCase
-from src.application.use_cases.save_document import (
-    DuplicateDocumentError,
-    SaveDocumentUseCase,
-)
-from src.application.use_cases.update_document import (
-    UpdateDocumentUseCase,
-    DocumentNotFoundError as UpdateNotFoundError,
-)
+from src.application.use_cases.save_document import SaveDocumentUseCase
+from src.application.use_cases.update_document import UpdateDocumentUseCase
 from src.application.use_cases.upload_document import UploadDocumentUseCase
-from src.domain.exceptions import InvalidPdfFormatError, PdfTooLargeError
+from src.domain.exceptions import (
+    DocumentNotFoundError,
+    DuplicateDocumentError,
+    InvalidPdfFormatError,
+    PdfTooLargeError,
+)
 from src.domain.repositories.document_repository import DocumentRepository
 from src.infrastructure.adapters.pypdf_text_extractor import PyPdfTextExtractor
 from src.interface_adapters.database.repository_provider import get_document_repository
@@ -189,7 +185,7 @@ async def update_document(
     try:
         document = await use_case.execute(document_id, request.content)
         return DocumentResponse.from_entity(document)
-    except UpdateNotFoundError:
+    except DocumentNotFoundError:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail=f"Document with id {document_id} not found",
