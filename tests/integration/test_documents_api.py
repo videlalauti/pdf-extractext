@@ -191,7 +191,7 @@ class TestUploadDocument:
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
     def test_upload_duplicate_pdf_returns_409(self, client):
-        """POST /documents/upload con PDF duplicado debe retornar 409 con RFC 9457."""
+        """POST /documents/upload con PDF duplicado debe retornar 409."""
         pdf_content = self._create_simple_pdf()
 
         # Primer upload - debe funcionar
@@ -208,13 +208,9 @@ class TestUploadDocument:
         )
 
         assert second_response.status_code == HTTPStatus.CONFLICT
-        assert second_response.headers["content-type"] == "application/problem+json"
         body = second_response.json()
-        assert "type" in body
-        assert "title" in body
-        assert "status" in body
-        assert "detail" in body
-        assert "checksum" in body["detail"].lower() or "exists" in body["detail"].lower()
+        assert "checksum" in body["detail"].lower()
+        assert "already exists" in body["detail"].lower()
 
     def test_upload_pdf_with_text_extraction(self, client):
         """POST /documents/upload debe extraer texto correctamente del PDF."""

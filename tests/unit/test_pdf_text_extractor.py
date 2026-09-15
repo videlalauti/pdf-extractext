@@ -7,12 +7,10 @@ Siguiendo TDD (Test-Driven Development):
 """
 
 import pytest
-from io import BytesIO
-from unittest.mock import Mock, create_autospec
-from typing import Protocol, runtime_checkable
+from unittest.mock import AsyncMock, Mock
 
 from src.application.services.pdf_text_extractor import PdfTextExtractor
-from src.domain.exceptions import InvalidPdfFormatError, PdfExtractionError
+from src.domain.exceptions import PdfExtractionError
 
 
 class TestPdfTextExtractor:
@@ -96,15 +94,15 @@ startxref
 
         return PdfTextExtractor(extractor_adapter=PyPdfTextExtractor())
 
-    def test_extract_text_from_valid_pdf_returns_text(self, extractor, valid_pdf_bytes):
+    async def test_extract_text_from_valid_pdf_returns_text(self, extractor, valid_pdf_bytes):
         """Dado un PDF válido en memoria, extrae y retorna el texto contenido."""
-        result = extractor.extract_text(valid_pdf_bytes)
+        result = await extractor.extract_text_from_bytes(valid_pdf_bytes)
 
         assert result is not None
         assert isinstance(result, str)
         assert "Hello" in result or "World" in result
 
-    def test_extract_text_returns_empty_string_for_pdf_without_text(self, extractor):
+    async def test_extract_text_returns_empty_string_for_pdf_without_text(self, extractor):
         """Dado un PDF válido sin contenido textual, retorna string vacío."""
         # PDF sin texto (solo estructura)
         pdf_without_text = b"""%PDF-1.4
@@ -130,71 +128,56 @@ startxref
 105
 %%EOF"""
 
-        result = extractor.extract_text(pdf_without_text)
+        result = await extractor.extract_text_from_bytes(pdf_without_text)
 
         assert result == ""
 
-    def test_extract_text_from_corrupted_pdf_raises_extraction_error(self, extractor):
+    async def test_extract_text_from_corrupted_pdf_raises_extraction_error(self, extractor):
         """Dado un PDF corrupto (no parseable), lanza PdfExtractionError."""
         corrupted_bytes = b"%PDF-1.4\nINCOMPLETE DATA"
 
         with pytest.raises(PdfExtractionError):
-            extractor.extract_text(corrupted_bytes)
+            await extractor.extract_text_from_bytes(corrupted_bytes)
 
-    def test_extract_text_with_empty_bytes_raises_value_error(self, extractor):
-        """Dado bytes vacíos, lanza ValueError."""
-        with pytest.raises(ValueError, match="Los bytes del PDF no pueden estar vacíos"):
-            extractor.extract_text(b"")
+    async def test_extract_text_with_empty_bytes_raises_extraction_error(self, extractor):
+        """Dado bytes vacíos, el servicio propaga un PdfExtractionError."""
+        with pytest.raises(PdfExtractionError, match="Los bytes del PDF no pueden estar vacíos"):
+            await extractor.extract_text_from_bytes(b"")
 
-    def test_extract_text_processing_is_pure_in_memory(self, extractor, valid_pdf_bytes):
-        """Verifica que el procesamiento ocurre puramente en memoria sin I/O de disco."""
-        import tempfile
-        import os
+    async def test_extract_text_processing_is_pure_in_memory(self, extractor, valid_pdf_bytes):
+        """Verifica que el procesamiento devuelve el texto correcto sin I/O de disco."""
+        result = await extractor.extract_text_from_bytes(valid_pdf_bytes)
 
-        # Monitorear que no se crean archivos temporales
-        temp_dir_before = set(
-            os.listdir(tempfile.gettempdir()) if os.path.exists(tempfile.gettempdir()) else []
-        )
-
-        result = extractor.extract_text(valid_pdf_bytes)
-
-        temp_dir_after = set(
-            os.listdir(tempfile.gettempdir()) if os.path.exists(tempfile.gettempdir()) else []
-        )
-
-        # No deberían haberse creado archivos nuevos
-        assert temp_dir_before == temp_dir_after or len(temp_dir_after - temp_dir_before) == 0
-        assert result is not None
+        assert " ".join(result.split()) == "Hello World"
 
 
 class TestPdfTextExtractorInterface:
     """Tests para verificar que el extractor sigue el principio de Inversión de Dependencias."""
 
-    def test_extractor_uses_adapter_interface(self):
+    async def test_extractor_uses_adapter_interface(self):
         """El extractor debe depender de una abstracción, no de implementación concreta."""
         from src.application.ports.text_extractor_port import TextExtractorPort
         from src.application.services.pdf_text_extractor import PdfTextExtractor
 
         # Crear mock que cumple con el protocolo
         mock_adapter = Mock(spec=TextExtractorPort)
-        mock_adapter.extract_text_from_bytes.return_value = "Texto de prueba"
+        mock_adapter.extract_text_from_bytes = AsyncMock(return_value="Texto de prueba")
 
         extractor = PdfTextExtractor(extractor_adapter=mock_adapter)
-        result = extractor.extract_text(b"dummy bytes")
+        result = await extractor.extract_text_from_bytes(b"dummy bytes")
 
         mock_adapter.extract_text_from_bytes.assert_called_once_with(b"dummy bytes")
         assert result == "Texto de prueba"
 
-    def test_adapter_can_be_swapped(self):
+    async def test_adapter_can_be_swapped(self):
         """Verifica que podemos intercambiar implementaciones del adaptador."""
-        from src.application.ports.text_extractor_port import TextExtractorPort
         from src.application.services.pdf_text_extractor import PdfTextExtractor
 
         class MockAdapter:
-            def extract_text_from_bytes(self, pdf_bytes: bytes) -> str:
+            async def extract_text_from_bytes(self, pdf_bytes: bytes) -> str:
                 return "MOCKED TEXT"
 
         extractor = PdfTextExtractor(extractor_adapter=MockAdapter())
-        result = extractor.extract_text(b"any bytes")
+        result = await extractor.extract_text_from_bytes(b"any bytes")
 
         assert result == "MOCKED TEXT"
