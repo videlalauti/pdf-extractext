@@ -6,7 +6,13 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from src.application.services.item_service import ItemService
+from src.application.use_cases.item_use_case import (
+    CreateItemUseCase,
+    DeleteItemUseCase,
+    GetItemUseCase,
+    ListItemsUseCase,
+    UpdateItemUseCase,
+)
 from src.domain.repositories.item_repository import ItemRepository
 from src.interface_adapters.database.repository_provider import get_item_repository
 from src.interface_adapters.http.schemas.item_schemas import (
@@ -18,43 +24,64 @@ from src.interface_adapters.http.schemas.item_schemas import (
 router = APIRouter(prefix="/items", tags=["items"])
 
 
-def get_item_service(
+def get_list_use_case(
     repository: ItemRepository = Depends(get_item_repository),
-) -> ItemService:
-    """Proveedor de dependencia para el servicio.
+) -> ListItemsUseCase:
+    """Proveedor de dependencia para el caso de uso de listar."""
+    return ListItemsUseCase(repository)
 
-    Args:
-        repository: Repositorio inyectado.
 
-    Returns:
-        ItemService: Servicio configurado.
-    """
-    return ItemService(repository)
+def get_get_use_case(
+    repository: ItemRepository = Depends(get_item_repository),
+) -> GetItemUseCase:
+    """Proveedor de dependencia para el caso de uso de obtener."""
+    return GetItemUseCase(repository)
+
+
+def get_create_use_case(
+    repository: ItemRepository = Depends(get_item_repository),
+) -> CreateItemUseCase:
+    """Proveedor de dependencia para el caso de uso de crear."""
+    return CreateItemUseCase(repository)
+
+
+def get_update_use_case(
+    repository: ItemRepository = Depends(get_item_repository),
+) -> UpdateItemUseCase:
+    """Proveedor de dependencia para el caso de uso de actualizar."""
+    return UpdateItemUseCase(repository)
+
+
+def get_delete_use_case(
+    repository: ItemRepository = Depends(get_item_repository),
+) -> DeleteItemUseCase:
+    """Proveedor de dependencia para el caso de uso de eliminar."""
+    return DeleteItemUseCase(repository)
 
 
 @router.get("", response_model=List[ItemResponse])
 async def list_items(
-    service: ItemService = Depends(get_item_service),
+    use_case: ListItemsUseCase = Depends(get_list_use_case),
 ) -> List[ItemResponse]:
     """Lista todos los items.
 
     Returns:
         List[ItemResponse]: Lista de items.
     """
-    items = service.list_items()
+    items = use_case.execute()
     return [ItemResponse.from_entity(item) for item in items]
 
 
 @router.get("/{item_id}", response_model=ItemResponse)
 async def get_item(
     item_id: UUID,
-    service: ItemService = Depends(get_item_service),
+    use_case: GetItemUseCase = Depends(get_get_use_case),
 ) -> ItemResponse:
     """Obtiene un item por su ID.
 
     Args:
         item_id: UUID del item.
-        service: Servicio de items.
+        use_case: Caso de uso de obtener items.
 
     Returns:
         ItemResponse: Item encontrado.
@@ -62,7 +89,7 @@ async def get_item(
     Raises:
         HTTPException: 404 si no existe.
     """
-    item = service.get_item(item_id)
+    item = use_case.execute(item_id)
     if item is None:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
@@ -74,13 +101,13 @@ async def get_item(
 @router.post("", response_model=ItemResponse, status_code=HTTPStatus.CREATED)
 async def create_item(
     request: ItemCreateRequest,
-    service: ItemService = Depends(get_item_service),
+    use_case: CreateItemUseCase = Depends(get_create_use_case),
 ) -> ItemResponse:
     """Crea un nuevo item.
 
     Args:
         request: Datos del item a crear.
-        service: Servicio de items.
+        use_case: Caso de uso de crear items.
 
     Returns:
         ItemResponse: Item creado.
@@ -89,7 +116,7 @@ async def create_item(
         HTTPException: 400 si los datos son inválidos.
     """
     try:
-        item = service.create_item(
+        item = use_case.execute(
             name=request.name,
             description=request.description,
         )
@@ -105,14 +132,14 @@ async def create_item(
 async def update_item(
     item_id: UUID,
     request: ItemUpdateRequest,
-    service: ItemService = Depends(get_item_service),
+    use_case: UpdateItemUseCase = Depends(get_update_use_case),
 ) -> ItemResponse:
     """Actualiza un item existente.
 
     Args:
         item_id: UUID del item.
         request: Datos a actualizar.
-        service: Servicio de items.
+        use_case: Caso de uso de actualizar items.
 
     Returns:
         ItemResponse: Item actualizado.
@@ -121,7 +148,7 @@ async def update_item(
         HTTPException: 404 si no existe, 400 si los datos son inválidos.
     """
     try:
-        item = service.update_item(
+        item = use_case.execute(
             item_id=item_id,
             name=request.name,
             description=request.description,
@@ -142,18 +169,18 @@ async def update_item(
 @router.delete("/{item_id}", status_code=HTTPStatus.NO_CONTENT)
 async def delete_item(
     item_id: UUID,
-    service: ItemService = Depends(get_item_service),
+    use_case: DeleteItemUseCase = Depends(get_delete_use_case),
 ) -> None:
     """Elimina un item.
 
     Args:
         item_id: UUID del item.
-        service: Servicio de items.
+        use_case: Caso de uso de eliminar items.
 
     Raises:
         HTTPException: 404 si no existe.
     """
-    deleted = service.delete_item(item_id)
+    deleted = use_case.execute(item_id)
     if not deleted:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
