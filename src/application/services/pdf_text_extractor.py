@@ -24,9 +24,9 @@ class PdfTextExtractor:
         _extractor_adapter: Adaptador que implementa TextExtractorPort
 
     Example:
-        >>> from src.infrastructure.adapters.pypdf_text_extractor import PyPdfTextExtractor
-        >>> extractor = PdfTextExtractor(extractor_adapter=PyPdfTextExtractor())
-        >>> text = extractor.extract_text(pdf_bytes)
+        >>> from src.application.ports.text_extractor_port import TextExtractorPort
+        >>> extractor = PdfTextExtractor(extractor_adapter=extractor_adapter)
+        >>> text = extractor.extract_text_from_file("sample.pdf")
     """
 
     def __init__(self, extractor_adapter: TextExtractorPort) -> None:

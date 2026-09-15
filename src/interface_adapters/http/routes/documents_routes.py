@@ -22,6 +22,7 @@ from src.domain.exceptions import (
 )
 from src.domain.repositories.document_repository import DocumentRepository
 from src.infrastructure.adapters.pypdf_text_extractor import PyPdfTextExtractor
+from src.infrastructure.config.settings import settings
 from src.interface_adapters.database.repository_provider import get_document_repository
 from src.interface_adapters.http.schemas.document_schemas import (
     DocumentResponse,
@@ -69,7 +70,7 @@ def get_upload_use_case(
     - Extractor de texto (PyPDF)
     - Caso de uso de guardado con verificación de duplicados
     """
-    validator = PdfValidator()
+    validator = PdfValidator(max_size_bytes=settings.MAX_PDF_SIZE_BYTES)
     extractor_adapter = PyPdfTextExtractor()
     extractor = PdfTextExtractor(extractor_adapter=extractor_adapter)
     save_use_case = SaveDocumentUseCase(repository=repository)
