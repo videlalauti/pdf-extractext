@@ -38,6 +38,16 @@ class MongoDBConnection:
         """Verifica si existe una conexión activa."""
         return self._client is not None
 
+    async def ping(self) -> bool:
+        """Realiza ping a MongoDB para verificar conexión."""
+        if not self.is_connected:
+            return False
+        try:
+            await self._client.admin.command("ping")
+            return True
+        except Exception:
+            return False
+
     async def connect(self) -> None:
         """Establece la conexión con MongoDB.
 

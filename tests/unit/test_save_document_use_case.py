@@ -112,11 +112,5 @@ class TestSaveDocumentUseCase:
         use_case = SaveDocumentUseCase(repository=mock_repo)
         await use_case.execute(pdf_bytes=b"contenido", content="texto")
 
-        assert mock_repo.exists_by_checksum.called
-        assert mock_repo.save.called
-        call_order = [
-            call
-            for call in mock_repo.method_calls
-            if "exists_by_checksum" in str(call) or "save" in str(call)
-        ]
-        assert "exists_by_checksum" in str(call_order[0])
+        mock_repo.exists_by_checksum.assert_awaited_once()
+        mock_repo.save.assert_awaited_once()

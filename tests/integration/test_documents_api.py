@@ -1,6 +1,5 @@
 """Tests de integración para endpoints de documentos."""
 
-import asyncio
 from http import HTTPStatus
 from pathlib import Path
 from uuid import uuid4
@@ -75,10 +74,9 @@ class TestDocumentsApi:
 
         assert response.status_code == HTTPStatus.NOT_FOUND
 
-    def test_full_document_lifecycle(self, client):
+    @pytest.mark.asyncio
+    async def test_full_document_lifecycle(self, client):
         """Flujo completo: crear, obtener, actualizar, eliminar."""
-        import asyncio
-
         # Create document directly via repository
         repo = get_document_repository()
         doc_id = str(uuid4())
@@ -87,7 +85,7 @@ class TestDocumentsApi:
             content="Original text",
             checksum="original_checksum",
         )
-        asyncio.run(repo.save(doc))
+        await repo.save(doc)
 
         # Get - verify exists
         get_response = client.get(f"/api/v1/documents/{doc_id}")

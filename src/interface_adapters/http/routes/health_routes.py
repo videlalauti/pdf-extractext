@@ -19,14 +19,10 @@ async def health_check():
         HTTPException: 503 si la base de datos no está disponible.
     """
     try:
-        # Intentar hacer ping a la base de datos
-        if mongodb_connection.is_connected:
-            await mongodb_connection._client.admin.command("ping")
+        if await mongodb_connection.ping():
             return {"status": "ok"}
-        else:
-            # Intentar conectar si no está conectado
-            await mongodb_connection.connect()
-            return {"status": "ok"}
+        await mongodb_connection.connect()
+        return {"status": "ok"}
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

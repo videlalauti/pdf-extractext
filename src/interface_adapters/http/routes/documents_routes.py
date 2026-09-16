@@ -6,8 +6,6 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
 
-from src.application.services.pdf_text_extractor import PdfTextExtractor
-from src.application.services.pdf_validator import PdfValidator
 from src.application.use_cases.delete_document import DeleteDocumentUseCase
 from src.application.use_cases.get_document import GetDocumentUseCase
 from src.application.use_cases.list_documents import ListDocumentsUseCase
@@ -19,64 +17,19 @@ from src.domain.exceptions import (
     InvalidPdfFormatError,
     PdfTooLargeError,
 )
-from src.domain.repositories.document_repository import DocumentRepository
-from src.infrastructure.adapters.pypdf_text_extractor import PyPdfTextExtractor
-from src.infrastructure.config.settings import settings
-from src.interface_adapters.database.repository_provider import get_document_repository
+from src.interface_adapters.http.providers import (
+    get_delete_use_case,
+    get_get_use_case,
+    get_list_use_case,
+    get_update_use_case,
+    get_upload_use_case,
+)
 from src.interface_adapters.http.schemas.document_schemas import (
     DocumentResponse,
     DocumentUpdateRequest,
 )
 
 router = APIRouter(prefix="/documents", tags=["documents"])
-
-
-def get_list_use_case(
-    repository: DocumentRepository = Depends(get_document_repository),
-) -> ListDocumentsUseCase:
-    """Proveedor de dependencia para el caso de uso de listar."""
-    return ListDocumentsUseCase(repository)
-
-
-def get_get_use_case(
-    repository: DocumentRepository = Depends(get_document_repository),
-) -> GetDocumentUseCase:
-    """Proveedor de dependencia para el caso de uso de obtener."""
-    return GetDocumentUseCase(repository)
-
-
-def get_update_use_case(
-    repository: DocumentRepository = Depends(get_document_repository),
-) -> UpdateDocumentUseCase:
-    """Proveedor de dependencia para el caso de uso de actualizar."""
-    return UpdateDocumentUseCase(repository)
-
-
-def get_delete_use_case(
-    repository: DocumentRepository = Depends(get_document_repository),
-) -> DeleteDocumentUseCase:
-    """Proveedor de dependencia para el caso de uso de eliminar."""
-    return DeleteDocumentUseCase(repository)
-
-
-def get_upload_use_case(
-    repository: DocumentRepository = Depends(get_document_repository),
-) -> UploadDocumentUseCase:
-    """Proveedor de dependencia para el caso de uso de subir documentos.
-
-    Configura el flujo completo de upload con:
-    - Validador de PDFs
-    - Extractor de texto (PyPDF)
-    - Repositorio con verificación de duplicados
-    """
-    validator = PdfValidator(max_size_bytes=settings.MAX_PDF_SIZE_BYTES)
-    extractor_adapter = PyPdfTextExtractor()
-    extractor = PdfTextExtractor(extractor_adapter=extractor_adapter)
-    return UploadDocumentUseCase(
-        repository=repository,
-        extractor=extractor,
-        validator=validator,
-    )
 
 
 @router.post("/upload", response_model=DocumentResponse, status_code=HTTPStatus.CREATED)
