@@ -8,6 +8,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from src.domain.entities.item import Item
+from src.domain.exceptions import ValidationError
 from src.domain.repositories.item_repository import ItemRepository
 
 
@@ -24,7 +25,7 @@ class CreateItemUseCase:
 
     def _validate_name(self, name: str) -> None:
         if not name or not name.strip():
-            raise ValueError("Item name cannot be empty")
+            raise ValidationError("Item name cannot be empty")
 
 
 class ListItemsUseCase:
@@ -71,7 +72,7 @@ class UpdateItemUseCase:
 
     def _validate_name(self, name: str) -> None:
         if not name or not name.strip():
-            raise ValueError("Item name cannot be empty")
+            raise ValidationError("Item name cannot be empty")
 
 
 class DeleteItemUseCase:

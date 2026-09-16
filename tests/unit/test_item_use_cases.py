@@ -11,7 +11,7 @@ from src.application.use_cases.item_use_case import (
     ListItemsUseCase,
     UpdateItemUseCase,
 )
-from src.domain.entities.item import Item
+from src.domain.exceptions import ValidationError
 from src.interface_adapters.database.in_memory_item_repository import InMemoryItemRepository
 
 
@@ -67,12 +67,12 @@ class TestItemUseCases:
 
     def test_create_item_empty_name_raises_error(self, create_use_case):
         """Debe rechazar nombres vacíos."""
-        with pytest.raises(ValueError, match="cannot be empty"):
+        with pytest.raises(ValidationError, match="cannot be empty"):
             create_use_case.execute(name="", description="Description")
 
     def test_create_item_whitespace_name_raises_error(self, create_use_case):
         """Debe rechazar nombres con solo espacios."""
-        with pytest.raises(ValueError, match="cannot be empty"):
+        with pytest.raises(ValidationError, match="cannot be empty"):
             create_use_case.execute(name="   ", description="Description")
 
     def test_get_existing_item(self, create_use_case, get_use_case):

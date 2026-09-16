@@ -1,17 +1,9 @@
 """Caso de uso para eliminar un documento."""
 
-from dataclasses import dataclass
 from uuid import UUID
 
-from src.domain.repositories.document_repository import DocumentRepository
 from src.domain.exceptions import DocumentNotFoundError
-
-
-@dataclass
-class DeleteDocumentOutput:
-    """DTO de salida para el caso de uso."""
-
-    deleted: bool
+from src.domain.repositories.document_repository import DocumentRepository
 
 
 class DeleteDocumentUseCase:

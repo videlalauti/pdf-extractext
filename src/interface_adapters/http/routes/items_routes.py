@@ -13,6 +13,7 @@ from src.application.use_cases.item_use_case import (
     ListItemsUseCase,
     UpdateItemUseCase,
 )
+from src.domain.exceptions import ValidationError
 from src.domain.repositories.item_repository import ItemRepository
 from src.interface_adapters.database.repository_provider import get_item_repository
 from src.interface_adapters.http.schemas.item_schemas import (
@@ -121,7 +122,7 @@ async def create_item(
             description=request.description,
         )
         return ItemResponse.from_entity(item)
-    except ValueError as e:
+    except ValidationError as e:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail=str(e),
@@ -159,7 +160,7 @@ async def update_item(
                 detail=f"Item with id {item_id} not found",
             )
         return ItemResponse.from_entity(item)
-    except ValueError as e:
+    except ValidationError as e:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail=str(e),

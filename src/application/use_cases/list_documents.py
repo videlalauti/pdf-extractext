@@ -1,17 +1,9 @@
 """Caso de uso para listar todos los documentos."""
 
-from dataclasses import dataclass
 from typing import List
 
 from src.domain.entities.document import Document
 from src.domain.repositories.document_repository import DocumentRepository
-
-
-@dataclass
-class ListDocumentsOutput:
-    """DTO de salida para el caso de uso."""
-
-    documents: List[Document]
 
 
 class ListDocumentsUseCase:

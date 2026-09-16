@@ -4,8 +4,7 @@ Implementa el patrón Singleton para la gestión de conexiones
 y sigue los principios de Clean Architecture.
 """
 
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Optional
+from typing import Optional
 
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 
@@ -98,35 +97,3 @@ class MongoDBConnection:
 
 # Instancia global del gestor de conexión
 mongodb_connection = MongoDBConnection()
-
-
-@asynccontextmanager
-async def get_db_connection() -> AsyncGenerator[AsyncIOMotorDatabase, None]:
-    """Context manager para obtener conexión a la base de datos.
-
-    Yields:
-        AsyncIOMotorDatabase: Instancia de la base de datos.
-
-    Example:
-        async with get_db_connection() as db:
-            await db.items.insert_one({"name": "example"})
-    """
-    if not mongodb_connection.is_connected:
-        await mongodb_connection.connect()
-    try:
-        yield mongodb_connection.get_database()
-    except Exception:
-        await mongodb_connection.disconnect()
-        raise
-
-
-async def lifespan_handler():
-    """Handler para gestionar el ciclo de vida de la conexión.
-
-    Uso con FastAPI lifespan events.
-    """
-    await mongodb_connection.connect()
-    try:
-        yield
-    finally:
-        await mongodb_connection.disconnect()

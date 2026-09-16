@@ -1,18 +1,10 @@
 """Caso de uso para obtener un documento por ID."""
 
-from dataclasses import dataclass
 from typing import Optional
 from uuid import UUID
 
 from src.domain.entities.document import Document
 from src.domain.repositories.document_repository import DocumentRepository
-
-
-@dataclass
-class GetDocumentOutput:
-    """DTO de salida para el caso de uso."""
-
-    document: Optional[Document]
 
 
 class GetDocumentUseCase:

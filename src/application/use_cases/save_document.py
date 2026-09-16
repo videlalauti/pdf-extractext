@@ -5,28 +5,11 @@ generando checksum SHA-256 y evitando duplicados.
 """
 
 import hashlib
-from dataclasses import dataclass
-from typing import Optional
 from uuid import uuid4
 
 from src.domain.entities.document import Document
-from src.domain.repositories.document_repository import DocumentRepository
 from src.domain.exceptions import DuplicateDocumentError
-
-
-@dataclass
-class SaveDocumentInput:
-    """DTO de entrada para el caso de uso."""
-
-    pdf_bytes: bytes
-    content: str
-
-
-@dataclass
-class SaveDocumentOutput:
-    """DTO de salida para el caso de uso."""
-
-    document: Document
+from src.domain.repositories.document_repository import DocumentRepository
 
 
 class SaveDocumentUseCase:

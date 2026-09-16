@@ -1,27 +1,10 @@
 """Caso de uso para actualizar el contenido de un documento."""
 
-from dataclasses import dataclass
-from typing import Optional
 from uuid import UUID
 
 from src.domain.entities.document import Document
-from src.domain.repositories.document_repository import DocumentRepository
 from src.domain.exceptions import DocumentNotFoundError
-
-
-@dataclass
-class UpdateDocumentInput:
-    """DTO de entrada para el caso de uso."""
-
-    document_id: UUID
-    content: str
-
-
-@dataclass
-class UpdateDocumentOutput:
-    """DTO de salida para el caso de uso."""
-
-    document: Document
+from src.domain.repositories.document_repository import DocumentRepository
 
 
 class UpdateDocumentUseCase:

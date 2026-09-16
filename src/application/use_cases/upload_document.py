@@ -10,7 +10,6 @@ del PDF y no realiza operaciones de I/O en disco.
 """
 
 import hashlib
-from dataclasses import dataclass
 from uuid import uuid4
 
 from src.application.services.pdf_text_extractor import PdfTextExtractor
@@ -18,20 +17,6 @@ from src.application.services.pdf_validator import PdfValidator
 from src.domain.entities.document import Document
 from src.domain.exceptions import DuplicateDocumentError
 from src.domain.repositories.document_repository import DocumentRepository
-
-
-@dataclass
-class UploadDocumentInput:
-    """DTO de entrada para el caso de uso de upload."""
-
-    pdf_bytes: bytes
-
-
-@dataclass
-class UploadDocumentOutput:
-    """DTO de salida para el caso de uso de upload."""
-
-    document: Document
 
 
 class UploadDocumentUseCase:
