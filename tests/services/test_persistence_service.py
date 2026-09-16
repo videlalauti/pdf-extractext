@@ -24,12 +24,8 @@ def test_create_and_get_document(persistence_client):
 
 
 def test_list_documents(persistence_client):
-    persistence_client.post(
-        "/documents", json={"content": "text-a", "checksum": "a"}
-    )
-    persistence_client.post(
-        "/documents", json={"content": "text-b", "checksum": "b"}
-    )
+    persistence_client.post("/documents", json={"content": "text-a", "checksum": "a"})
+    persistence_client.post("/documents", json={"content": "text-b", "checksum": "b"})
     resp = persistence_client.get("/documents")
     assert resp.status_code == 200
     assert len(resp.json()) == 2

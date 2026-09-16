@@ -1,7 +1,6 @@
 """Repositorio CRUD sobre la colección documents; toda la lógica de persistencia."""
 
 import uuid
-from typing import List, Optional
 
 from fastapi import HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorCollection
@@ -18,17 +17,19 @@ class DocumentRepository:
         self._collection = self.get_collection(connection, self.COLLECTION_NAME)
 
     @staticmethod
-    def get_collection(connection: MongoDBConnection, collection_name: str) -> AsyncIOMotorCollection:
+    def get_collection(
+        connection: MongoDBConnection, collection_name: str
+    ) -> AsyncIOMotorCollection:
         return connection.get_database()[collection_name]
 
-    async def create(self, doc_id: Optional[str], content: str, checksum: str) -> dict:
+    async def create(self, doc_id: str | None, content: str, checksum: str) -> dict:
         document_id = doc_id or str(uuid.uuid4())
         await self._collection.insert_one(
             {"_id": document_id, "content": content, "checksum": checksum}
         )
         return {"id": document_id, "content": content, "checksum": checksum}
 
-    async def list_all(self) -> List[dict]:
+    async def list_all(self) -> list[dict]:
         documents = []
         async for item in self._collection.find():
             documents.append(self._to_dict(item))
@@ -40,10 +41,14 @@ class DocumentRepository:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
         return self._to_dict(data)
 
-    async def update(self, document_id: str, content: Optional[str], checksum: Optional[str]) -> dict:
-        update_data = {k: v for k, v in {"content": content, "checksum": checksum}.items() if v is not None}
+    async def update(self, document_id: str, content: str | None, checksum: str | None) -> dict:
+        update_data = {
+            k: v for k, v in {"content": content, "checksum": checksum}.items() if v is not None
+        }
         if not update_data:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update"
+            )
 
         result = await self._collection.update_one({"_id": document_id}, {"$set": update_data})
         if result.matched_count == 0:

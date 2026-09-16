@@ -6,8 +6,9 @@ Siguiendo TDD (Test-Driven Development):
 - Cada test describe una capacidad observable del sistema
 """
 
-import pytest
 from unittest.mock import AsyncMock, Mock
+
+import pytest
 
 from src.application.services.pdf_text_extractor import PdfTextExtractor
 from src.domain.exceptions import PdfExtractionError

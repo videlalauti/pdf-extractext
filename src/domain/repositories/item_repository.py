@@ -1,7 +1,6 @@
 """Interfaz del repositorio de items."""
 
 from abc import ABC, abstractmethod
-from typing import List, Optional
 from uuid import UUID
 
 from src.domain.entities.item import Item
@@ -27,7 +26,7 @@ class ItemRepository(ABC):
         pass
 
     @abstractmethod
-    def find_by_id(self, item_id: UUID) -> Optional[Item]:
+    def find_by_id(self, item_id: UUID) -> Item | None:
         """Busca un item por su identificador.
 
         Args:
@@ -39,7 +38,7 @@ class ItemRepository(ABC):
         pass
 
     @abstractmethod
-    def find_all(self) -> List[Item]:
+    def find_all(self) -> list[Item]:
         """Recupera todos los items.
 
         Returns:

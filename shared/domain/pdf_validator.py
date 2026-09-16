@@ -1,7 +1,6 @@
 """Validación de PDF en memoria, compartida entre monolith y microservicios."""
 
 from dataclasses import dataclass
-from typing import Optional
 
 from shared.domain.exceptions import InvalidPdfFormatError, PdfTooLargeError
 
@@ -11,7 +10,7 @@ class PdfValidationResult:
     """Resultado sin excepciones: el caller decide cómo traducir el error."""
 
     is_valid: bool
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class PdfValidator:
@@ -50,7 +49,7 @@ class PdfValidator:
 
         return PdfValidationResult(is_valid=True)
 
-    def _validate_size(self, pdf_bytes: bytes) -> Optional[str]:
+    def _validate_size(self, pdf_bytes: bytes) -> str | None:
         """Limitar el tamaño evita DoS por memoria en servicios sin backpressure."""
         if not pdf_bytes:
             return "El archivo está vacío"
@@ -60,7 +59,7 @@ class PdfValidator:
 
         return None
 
-    def _validate_format(self, pdf_bytes: bytes) -> Optional[str]:
+    def _validate_format(self, pdf_bytes: bytes) -> str | None:
         """El magic number filtra archivos que pypdf no podría parsear."""
         if not pdf_bytes.startswith(self.PDF_MAGIC_NUMBER):
             return "El archivo no tiene un formato PDF válido"

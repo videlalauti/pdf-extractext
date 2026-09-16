@@ -1,7 +1,8 @@
 """Tests para la entidad Document del dominio."""
 
-import pytest
 from dataclasses import FrozenInstanceError
+
+import pytest
 
 
 class TestDocument:
@@ -54,8 +55,9 @@ class TestDocumentMongoSchema:
 
     def test_schema_rechaza_checksum_vacio(self):
         """Test: El esquema debe rechazar checksum vacío."""
-        from src.interface_adapters.database.schemas.document_schema import DocumentMongoSchema
         from pydantic import ValidationError
+
+        from src.interface_adapters.database.schemas.document_schema import DocumentMongoSchema
 
         with pytest.raises(ValidationError):
             DocumentMongoSchema(id="doc-mongo-002", content="Texto", checksum="")

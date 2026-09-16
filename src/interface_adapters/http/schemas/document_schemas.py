@@ -1,6 +1,5 @@
 """Schemas Pydantic para documentos."""
 
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field

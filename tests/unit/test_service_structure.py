@@ -12,7 +12,6 @@ def test_extraction_service_has_routes_module():
 
 
 def test_persistence_service_has_repository():
-    assert (
-        os.path.exists("services/persistence-service/repository.py")
-        or os.path.exists("services/persistence-service/persistence/repository.py")
+    assert os.path.exists("services/persistence-service/repository.py") or os.path.exists(
+        "services/persistence-service/persistence/repository.py"
     )

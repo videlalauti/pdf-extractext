@@ -1,8 +1,7 @@
 """Entidad Item del dominio."""
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 
@@ -21,12 +20,10 @@ class Item:
     name: str
     description: str
     id: UUID = field(default_factory=uuid4)
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: Optional[datetime] = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime | None = None
 
-    def update(
-        self, name: Optional[str] = None, description: Optional[str] = None
-    ) -> "Item":
+    def update(self, name: str | None = None, description: str | None = None) -> "Item":
         """Crea una nueva instancia con valores actualizados.
 
         Args:
@@ -41,5 +38,5 @@ class Item:
             name=name if name is not None else self.name,
             description=description if description is not None else self.description,
             created_at=self.created_at,
-            updated_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(UTC),
         )

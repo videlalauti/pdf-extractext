@@ -1,7 +1,6 @@
 """Schemas Pydantic para items."""
 
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -18,9 +17,7 @@ class ItemCreateRequest(BaseModel):
     """
 
     name: str = Field(..., min_length=3, max_length=100, description="Nombre del item")
-    description: str = Field(
-        ..., max_length=500, description="Descripción detallada del item"
-    )
+    description: str = Field(..., max_length=500, description="Descripción detallada del item")
 
 
 class ItemUpdateRequest(BaseModel):
@@ -31,8 +28,8 @@ class ItemUpdateRequest(BaseModel):
         description: Nueva descripción opcional.
     """
 
-    name: Optional[str] = Field(None, min_length=3, max_length=100)
-    description: Optional[str] = Field(None, max_length=500)
+    name: str | None = Field(None, min_length=3, max_length=100)
+    description: str | None = Field(None, max_length=500)
 
 
 class ItemResponse(BaseModel):
@@ -50,9 +47,7 @@ class ItemResponse(BaseModel):
     name: str = Field(..., description="Nombre del item")
     description: str = Field(..., description="Descripción del item")
     created_at: datetime = Field(..., description="Fecha de creación")
-    updated_at: Optional[datetime] = Field(
-        None, description="Fecha de última actualización"
-    )
+    updated_at: datetime | None = Field(None, description="Fecha de última actualización")
 
     @classmethod
     def from_entity(cls, item: Item) -> "ItemResponse":

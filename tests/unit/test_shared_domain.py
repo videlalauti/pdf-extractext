@@ -1,5 +1,5 @@
 def test_shared_validator_importable():
-    from shared.domain.pdf_validator import PdfValidator, PdfValidationResult
+    from shared.domain.pdf_validator import PdfValidator
 
     assert PdfValidator is not None
 

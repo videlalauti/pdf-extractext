@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
@@ -43,7 +44,6 @@ def _session_cleanup(service_dir: Path, *names) -> None:
 
 @pytest.fixture
 def validation_client():
-    from shared.domain.pdf_validator import PdfValidator
 
     _register("routes", _load_module("validation_routes", VALIDATION_DIR / "routes.py"))
     app = _load_app(VALIDATION_DIR, "validation")

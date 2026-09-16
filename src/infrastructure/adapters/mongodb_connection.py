@@ -24,8 +24,8 @@ class MongoDBConnection:
     """
 
     _instance: Optional["MongoDBConnection"] = None
-    _client: Optional[AsyncIOMotorClient] = None
-    _database: Optional[AsyncIOMotorDatabase] = None
+    _client: AsyncIOMotorClient | None = None
+    _database: AsyncIOMotorDatabase | None = None
 
     def __new__(cls) -> "MongoDBConnection":
         """Crea o retorna la instancia única del gestor de conexión."""

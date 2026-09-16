@@ -106,9 +106,7 @@ class TestItemUseCases:
         """Debe actualizar un item existente."""
         created = create_use_case.execute(name="Original", description="Original desc")
 
-        updated = update_use_case.execute(
-            created.id, name="Updated", description="New desc"
-        )
+        updated = update_use_case.execute(created.id, name="Updated", description="New desc")
 
         assert updated is not None
         assert updated.name == "Updated"

@@ -1,26 +1,22 @@
 """Persistence service: endpoints HTTP CRUD delegando en DocumentRepository."""
 
-from typing import List, Optional
-
 from fastapi import APIRouter, status
-from pydantic import BaseModel
-
 from persistence.mongodb_connection import MongoDBConnection
 from persistence.repository import DocumentRepository
-
+from pydantic import BaseModel
 
 router = APIRouter()
 
 
 class DocumentCreate(BaseModel):
-    id: Optional[str] = None
+    id: str | None = None
     content: str
     checksum: str
 
 
 class DocumentUpdate(BaseModel):
-    content: Optional[str] = None
-    checksum: Optional[str] = None
+    content: str | None = None
+    checksum: str | None = None
 
 
 class DocumentResponse(BaseModel):
@@ -37,8 +33,8 @@ async def create_document(doc: DocumentCreate) -> DocumentResponse:
     return DocumentResponse(**await repository.create(doc.id, doc.content, doc.checksum))
 
 
-@router.get("/documents", response_model=List[DocumentResponse])
-async def get_documents() -> List[DocumentResponse]:
+@router.get("/documents", response_model=list[DocumentResponse])
+async def get_documents() -> list[DocumentResponse]:
     return [DocumentResponse(**document) for document in await repository.list_all()]
 
 
@@ -49,7 +45,9 @@ async def get_document(document_id: str) -> DocumentResponse:
 
 @router.put("/documents/{document_id}", response_model=DocumentResponse)
 async def update_document(document_id: str, doc_update: DocumentUpdate) -> DocumentResponse:
-    return DocumentResponse(**await repository.update(document_id, doc_update.content, doc_update.checksum))
+    return DocumentResponse(
+        **await repository.update(document_id, doc_update.content, doc_update.checksum)
+    )
 
 
 @router.delete("/documents/{document_id}", status_code=status.HTTP_204_NO_CONTENT)

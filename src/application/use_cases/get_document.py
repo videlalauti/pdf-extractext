@@ -1,6 +1,5 @@
 """Caso de uso para obtener un documento por ID."""
 
-from typing import Optional
 from uuid import UUID
 
 from src.domain.entities.document import Document
@@ -18,7 +17,7 @@ class GetDocumentUseCase:
         """
         self._repository = repository
 
-    async def execute(self, document_id: UUID) -> Optional[Document]:
+    async def execute(self, document_id: UUID) -> Document | None:
         """Ejecuta el caso de uso.
 
         Args:

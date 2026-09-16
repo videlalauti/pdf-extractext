@@ -4,7 +4,6 @@ Implementan la lógica de negocio para crear, listar, obtener,
 actualizar y eliminar items, delegando la persistencia al repositorio.
 """
 
-from typing import List, Optional
 from uuid import UUID
 
 from src.domain.entities.item import Item
@@ -34,7 +33,7 @@ class ListItemsUseCase:
     def __init__(self, repository: ItemRepository) -> None:
         self._repository = repository
 
-    def execute(self) -> List[Item]:
+    def execute(self) -> list[Item]:
         return self._repository.find_all()
 
 
@@ -44,7 +43,7 @@ class GetItemUseCase:
     def __init__(self, repository: ItemRepository) -> None:
         self._repository = repository
 
-    def execute(self, item_id: UUID) -> Optional[Item]:
+    def execute(self, item_id: UUID) -> Item | None:
         return self._repository.find_by_id(item_id)
 
 
@@ -57,9 +56,9 @@ class UpdateItemUseCase:
     def execute(
         self,
         item_id: UUID,
-        name: Optional[str] = None,
-        description: Optional[str] = None,
-    ) -> Optional[Item]:
+        name: str | None = None,
+        description: str | None = None,
+    ) -> Item | None:
         existing_item = self._repository.find_by_id(item_id)
         if existing_item is None:
             return None

@@ -1,7 +1,6 @@
 """Endpoints para gestión de items."""
 
 from http import HTTPStatus
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -60,10 +59,10 @@ def get_delete_use_case(
     return DeleteItemUseCase(repository)
 
 
-@router.get("", response_model=List[ItemResponse])
+@router.get("", response_model=list[ItemResponse])
 async def list_items(
     use_case: ListItemsUseCase = Depends(get_list_use_case),
-) -> List[ItemResponse]:
+) -> list[ItemResponse]:
     """Lista todos los items.
 
     Returns:
@@ -126,7 +125,7 @@ async def create_item(
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail=str(e),
-        )
+        ) from e
 
 
 @router.put("/{item_id}", response_model=ItemResponse)
@@ -164,7 +163,7 @@ async def update_item(
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail=str(e),
-        )
+        ) from e
 
 
 @router.delete("/{item_id}", status_code=HTTPStatus.NO_CONTENT)

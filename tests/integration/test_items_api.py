@@ -6,7 +6,6 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
-from src.infrastructure.config.settings import settings
 from src.interface_adapters.database.repository_provider import reset_repository
 from src.interface_adapters.http.main import app
 

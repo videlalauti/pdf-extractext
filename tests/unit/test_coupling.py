@@ -14,8 +14,8 @@ def test_health_route_does_not_use_underscore_client():
     assert "_client" not in code
 
 
-def test_save_document_test_uses_assert_has_calls():
-    code = Path("tests/unit/test_save_document_use_case.py").read_text()
+def test_upload_document_test_does_not_use_call_str():
+    code = Path("tests/unit/test_upload_document_use_case.py").read_text()
     assert "str(call)" not in code
 
 

@@ -5,7 +5,7 @@ from pathlib import Path
 
 def test_main_py_uses_src_prefix():
     code = Path("main.py").read_text()
-    assert 'src.interface_adapters.http.main:app' in code
+    assert "src.interface_adapters.http.main:app" in code
 
 
 def test_no_services_external_dir():

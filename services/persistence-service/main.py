@@ -3,7 +3,6 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-
 from persistence.mongodb_connection import mongodb_connection
 from routes import router
 

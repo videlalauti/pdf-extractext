@@ -1,4 +1,4 @@
-from src.domain.exceptions import DomainError, DuplicateDocumentError, DocumentNotFoundError
+from src.domain.exceptions import DocumentNotFoundError, DomainError, DuplicateDocumentError
 
 
 def test_domain_error_is_base():
@@ -10,6 +10,7 @@ def test_document_not_found_is_domain_error():
 
 
 def test_exceptions_are_importable_from_single_location():
-    from src.domain.exceptions import DuplicateDocumentError, DocumentNotFoundError
+    from src.domain.exceptions import DocumentNotFoundError, DuplicateDocumentError
+
     assert DuplicateDocumentError is not None
     assert DocumentNotFoundError is not None

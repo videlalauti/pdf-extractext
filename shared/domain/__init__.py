@@ -7,6 +7,7 @@ from shared.domain.exceptions import (
     PdfExtractionError,
     PdfTooLargeError,
 )
+from shared.domain.filename import has_pdf_extension
 from shared.domain.pdf_validator import PdfValidationResult, PdfValidator
 from shared.domain.pypdf_text_extractor import PyPdfTextExtractor
 
@@ -19,4 +20,5 @@ __all__ = [
     "PdfValidationResult",
     "PdfValidator",
     "PyPdfTextExtractor",
+    "has_pdf_extension",
 ]

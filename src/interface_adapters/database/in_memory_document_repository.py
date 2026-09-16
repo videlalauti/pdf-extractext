@@ -1,6 +1,5 @@
 """Implementación en memoria del repositorio de documentos."""
 
-from typing import Dict, List, Optional
 from uuid import UUID
 
 from src.domain.entities.document import Document
@@ -16,7 +15,7 @@ class InMemoryDocumentRepository(DocumentRepository):
 
     def __init__(self) -> None:
         """Inicializa el repositorio vacío."""
-        self._documents: Dict[str, Document] = {}
+        self._documents: dict[str, Document] = {}
 
     async def save(self, document: Document) -> Document:
         """Guarda o actualiza un documento.
@@ -30,7 +29,7 @@ class InMemoryDocumentRepository(DocumentRepository):
         self._documents[document.id] = document
         return document
 
-    async def find_by_id(self, document_id: UUID) -> Optional[Document]:
+    async def find_by_id(self, document_id: UUID) -> Document | None:
         """Busca un documento por UUID.
 
         Args:
@@ -41,7 +40,7 @@ class InMemoryDocumentRepository(DocumentRepository):
         """
         return self._documents.get(str(document_id))
 
-    async def find_all(self) -> List[Document]:
+    async def find_all(self) -> list[Document]:
         """Recupera todos los documentos.
 
         Returns:
@@ -73,7 +72,4 @@ class InMemoryDocumentRepository(DocumentRepository):
         Returns:
             bool: True si existe documento con ese checksum.
         """
-        for doc in self._documents.values():
-            if doc.checksum == checksum:
-                return True
-        return False
+        return any(doc.checksum == checksum for doc in self._documents.values())

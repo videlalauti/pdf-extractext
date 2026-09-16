@@ -1,7 +1,5 @@
 """Caso de uso para listar todos los documentos."""
 
-from typing import List
-
 from src.domain.entities.document import Document
 from src.domain.repositories.document_repository import DocumentRepository
 
@@ -17,7 +15,7 @@ class ListDocumentsUseCase:
         """
         self._repository = repository
 
-    async def execute(self) -> List[Document]:
+    async def execute(self) -> list[Document]:
         """Ejecuta el caso de uso.
 
         Returns:

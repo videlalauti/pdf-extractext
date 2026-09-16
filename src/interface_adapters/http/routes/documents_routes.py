@@ -1,7 +1,6 @@
 """Endpoints para gestión de documentos PDF."""
 
 from http import HTTPStatus
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile
@@ -78,10 +77,10 @@ async def upload_document(
         ) from error
 
 
-@router.get("", response_model=List[DocumentResponse])
+@router.get("", response_model=list[DocumentResponse])
 async def list_documents(
     use_case: ListDocumentsUseCase = Depends(get_list_use_case),
-) -> List[DocumentResponse]:
+) -> list[DocumentResponse]:
     """Lista todos los documentos.
 
     Returns:
@@ -137,11 +136,11 @@ async def update_document(
     try:
         document = await use_case.execute(document_id, request.content)
         return DocumentResponse.from_entity(document)
-    except DocumentNotFoundError:
+    except DocumentNotFoundError as error:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail=f"Document with id {document_id} not found",
-        )
+        ) from error
 
 
 @router.delete("/{document_id}", status_code=HTTPStatus.NO_CONTENT)
@@ -159,8 +158,8 @@ async def delete_document(
     """
     try:
         await use_case.execute(document_id)
-    except DocumentNotFoundError:
+    except DocumentNotFoundError as error:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND,
             detail=f"Document with id {document_id} not found",
-        )
+        ) from error

@@ -23,8 +23,8 @@ async def health_check():
             return {"status": "ok"}
         await mongodb_connection.connect()
         return {"status": "ok"}
-    except Exception:
+    except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Database unavailable",
-        )
+        ) from error

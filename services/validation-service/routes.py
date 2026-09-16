@@ -4,8 +4,8 @@ from fastapi import APIRouter, UploadFile
 from pydantic import BaseModel
 
 from shared.domain.constants import MAX_PDF_SIZE_BYTES
+from shared.domain.filename import has_pdf_extension
 from shared.domain.pdf_validator import PdfValidator
-
 
 router = APIRouter()
 
@@ -20,7 +20,7 @@ validator = PdfValidator(max_size_bytes=MAX_PDF_SIZE_BYTES)
 
 @router.post("/validate", response_model=ValidationResponse)
 async def validate_pdf(file: UploadFile) -> ValidationResponse:
-    if not file.filename or not file.filename.lower().endswith(".pdf"):
+    if not has_pdf_extension(file.filename):
         return ValidationResponse(valid=False, error="El archivo debe tener extensión .pdf")
 
     content = await file.read()

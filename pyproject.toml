@@ -43,8 +43,20 @@ include = ["src*", "shared*"]
 [tool.ruff]
 target-version = "py311"
 line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
-ignore = ["E501"]
+ignore = [
+    "E501",
+    # B008: `Depends(...)` como default es el idioma de FastAPI para DI
+    "B008",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Los fixtures de PDF usan separadores de 2 bytes por entrada de xref
+# (10+1+5+1+1+2 = 20 bytes); el espacio final es parte del formato.
+"tests/services/test_extraction_service.py" = ["W291"]
+"tests/unit/test_pdf_text_extractor.py" = ["W291"]
 
 [tool.ruff.format]
 quote-style = "double"

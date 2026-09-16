@@ -1,6 +1,5 @@
 """Implementación en memoria del repositorio de items."""
 
-from typing import Dict, List, Optional
 from uuid import UUID
 
 from src.domain.entities.item import Item
@@ -16,7 +15,7 @@ class InMemoryItemRepository(ItemRepository):
 
     def __init__(self) -> None:
         """Inicializa el repositorio vacío."""
-        self._items: Dict[UUID, Item] = {}
+        self._items: dict[UUID, Item] = {}
 
     def save(self, item: Item) -> Item:
         """Guarda o actualiza un item.
@@ -30,7 +29,7 @@ class InMemoryItemRepository(ItemRepository):
         self._items[item.id] = item
         return item
 
-    def find_by_id(self, item_id: UUID) -> Optional[Item]:
+    def find_by_id(self, item_id: UUID) -> Item | None:
         """Busca un item por UUID.
 
         Args:
@@ -41,7 +40,7 @@ class InMemoryItemRepository(ItemRepository):
         """
         return self._items.get(item_id)
 
-    def find_all(self) -> List[Item]:
+    def find_all(self) -> list[Item]:
         """Recupera todos los items.
 
         Returns:

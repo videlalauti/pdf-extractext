@@ -11,6 +11,16 @@ from shared.domain.exceptions import (
     PdfTooLargeError,
 )
 
+__all__ = [
+    "DomainError",
+    "InvalidPdfFormatError",
+    "PdfExtractionError",
+    "PdfTooLargeError",
+    "ValidationError",
+    "DocumentNotFoundError",
+    "DuplicateDocumentError",
+]
+
 
 class ValidationError(DomainError):
     """Exception raised when validation of a domain entity fails."""

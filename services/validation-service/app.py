@@ -25,5 +25,7 @@ async def call_extraction_service(file_bytes: bytes, filename: str) -> dict:
                 return response.json()
         except (httpx.RequestError, httpx.HTTPStatusError) as e:
             if attempt == retries - 1:
-                raise HTTPException(status_code=502, detail=f"Error communicating with extraction-service: {str(e)}")
+                raise HTTPException(
+                    status_code=502, detail=f"Error communicating with extraction-service: {str(e)}"
+                ) from e
     return {}

@@ -1,7 +1,8 @@
 """Tests for document CRUD use cases using InMemoryDocumentRepository."""
 
-import pytest
 from uuid import uuid4
+
+import pytest
 
 from src.application.use_cases.delete_document import DeleteDocumentUseCase
 from src.application.use_cases.get_document import GetDocumentUseCase
