@@ -37,6 +37,9 @@ addopts = [
 ]
 asyncio_mode = "auto"
 
+[tool.setuptools.packages.find]
+include = ["src*", "shared*"]
+
 [tool.ruff]
 target-version = "py311"
 line-length = 100

@@ -6,7 +6,8 @@ import httpx
 from fastapi import FastAPI, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from src.pypdf_text_extractor import PdfExtractionError, PyPdfTextExtractor
+from shared.domain.exceptions import PdfExtractionError
+from shared.domain.pypdf_text_extractor import PyPdfTextExtractor
 
 
 class ExtractionResponse(BaseModel):
@@ -52,7 +53,7 @@ async def extract_text(file: UploadFile) -> ExtractionResponse:
 
     try:
         content = await file.read()
-        text = extractor.extract_text_from_bytes(content)
+        text = await extractor.extract_text_from_bytes(content)
 
         checksum = hashlib.sha256(content).hexdigest()
         persistence_response = await save_to_persistence(text, checksum)

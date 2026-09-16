@@ -1,8 +1,8 @@
 services:
   extraction-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: services/extraction-service/Dockerfile
     image: pdf-extraction-service:latest
     container_name: pdf-extraction-service
     restart: unless-stopped

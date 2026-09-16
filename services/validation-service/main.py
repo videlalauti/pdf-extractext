@@ -5,7 +5,8 @@ import httpx
 from fastapi import FastAPI, HTTPException, UploadFile
 from pydantic import BaseModel
 
-from src.pdf_validator import PdfValidator
+from shared.domain.constants import MAX_PDF_SIZE_BYTES
+from shared.domain.pdf_validator import PdfValidator
 
 
 class ValidationResponse(BaseModel):
@@ -15,7 +16,7 @@ class ValidationResponse(BaseModel):
 
 app = FastAPI(title="PDF Validation Service", version="1.0.0")
 
-validator = PdfValidator()
+validator = PdfValidator(max_size_bytes=MAX_PDF_SIZE_BYTES)
 
 
 @app.get("/health")

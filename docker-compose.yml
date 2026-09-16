@@ -7,8 +7,8 @@ include:
 services:
   validation-service:
     build:
-      context: ./services/validation-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/validation-service/Dockerfile
     image: pdf-validation-service:latest
     container_name: validation-service
     restart: unless-stopped
@@ -32,8 +32,8 @@ services:
 
   extraction-service:
     build:
-      context: ./services/extraction-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: services/extraction-service/Dockerfile
     image: pdf-extraction-service:latest
     container_name: extraction-service
     restart: unless-stopped

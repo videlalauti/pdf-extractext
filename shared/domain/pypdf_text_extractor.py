@@ -1,21 +1,17 @@
-"""Adaptador de extracción de texto usando PyPDF."""
+"""Extracción de texto con pypdf, compartida entre monolith y microservicios."""
 
 from io import BytesIO
+
 from pypdf import PdfReader
 
-
-class PdfExtractionError(Exception):
-    def __init__(
-        self,
-        message: str = "Error al extraer texto del PDF",
-        original_error: Exception | None = None,
-    ):
-        self.original_error = original_error
-        super().__init__(message)
+from shared.domain.exceptions import PdfExtractionError
 
 
 class PyPdfTextExtractor:
-    def extract_text_from_bytes(self, pdf_bytes: bytes) -> str:
+    """Procesa el PDF en memoria con BytesIO, sin crear archivos temporales."""
+
+    async def extract_text_from_bytes(self, pdf_bytes: bytes) -> str:
+        """Extrae texto de todas las páginas, o vacío si no hay texto extraíble."""
         if not pdf_bytes:
             raise ValueError("Los bytes del PDF no pueden estar vacíos")
 
