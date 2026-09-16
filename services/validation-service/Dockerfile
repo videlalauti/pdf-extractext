@@ -12,6 +12,8 @@ COPY services/validation-service/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY services/validation-service/main.py ./
+COPY services/validation-service/routes.py ./
+COPY services/validation-service/app.py ./
 COPY shared ./shared
 
 RUN chown -R appuser:appgroup /app

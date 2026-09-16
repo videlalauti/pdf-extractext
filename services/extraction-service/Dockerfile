@@ -12,6 +12,8 @@ COPY services/extraction-service/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY services/extraction-service/main.py ./
+COPY services/extraction-service/routes.py ./
+COPY services/extraction-service/app.py ./
 COPY shared ./shared
 
 RUN chown -R appuser:appgroup /app

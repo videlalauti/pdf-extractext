@@ -1,0 +1,1 @@
+"""Paquete de persistencia del persistence-service."""

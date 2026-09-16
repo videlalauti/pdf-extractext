@@ -1,23 +1,26 @@
-"""Extraction service FastAPI application."""
+"""Extraction service FastAPI application: bootstrap y montaje de componentes."""
 
-import hashlib
-import os
-import httpx
-from fastapi import FastAPI, HTTPException, UploadFile
-from pydantic import BaseModel
+from contextlib import asynccontextmanager
 
-from shared.domain.exceptions import PdfExtractionError
-from shared.domain.pypdf_text_extractor import PyPdfTextExtractor
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from routes import router
 
 
-class ExtractionResponse(BaseModel):
-    text: str
-    document_id: str | None = None
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
 
 
-app = FastAPI(title="PDF Extraction Service", version="1.0.0")
+app = FastAPI(title="PDF Extraction Service", version="1.0.0", lifespan=lifespan)
 
-extractor = PyPdfTextExtractor()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")
@@ -25,44 +28,4 @@ async def health():
     return {"status": "healthy", "service": "extraction-service"}
 
 
-async def save_to_persistence(content: str, checksum: str) -> dict:
-    base_url = os.getenv("PERSISTENCE_SERVICE_URL", "http://persistence.localhost")
-    url = f"{base_url}/documents"
-    payload = {
-        "content": content,
-        "checksum": checksum,
-    }
-
-    retries = 3
-    for attempt in range(retries):
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                response = await client.post(url, json=payload)
-                response.raise_for_status()
-                return response.json()
-        except (httpx.RequestError, httpx.HTTPStatusError) as e:
-            if attempt == retries - 1:
-                raise HTTPException(status_code=502, detail=f"Error communicating with persistence-service: {str(e)}")
-    return {}
-
-
-@app.post("/extract", response_model=ExtractionResponse)
-async def extract_text(file: UploadFile) -> ExtractionResponse:
-    if not file.filename or not file.filename.lower().endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="El archivo debe tener extensión .pdf")
-
-    try:
-        content = await file.read()
-        text = await extractor.extract_text_from_bytes(content)
-
-        checksum = hashlib.sha256(content).hexdigest()
-        persistence_response = await save_to_persistence(text, checksum)
-        doc_id = persistence_response.get("id")
-
-        return ExtractionResponse(text=text, document_id=doc_id)
-    except PdfExtractionError as e:
-        raise HTTPException(status_code=422, detail=str(e))
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
+app.include_router(router)

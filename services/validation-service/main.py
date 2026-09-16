@@ -1,22 +1,26 @@
-"""Validation service FastAPI application."""
+"""Validation service FastAPI application: bootstrap y montaje de componentes."""
 
-import os
-import httpx
-from fastapi import FastAPI, HTTPException, UploadFile
-from pydantic import BaseModel
+from contextlib import asynccontextmanager
 
-from shared.domain.constants import MAX_PDF_SIZE_BYTES
-from shared.domain.pdf_validator import PdfValidator
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-
-class ValidationResponse(BaseModel):
-    valid: bool
-    error: str | None = None
+from routes import router
 
 
-app = FastAPI(title="PDF Validation Service", version="1.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
 
-validator = PdfValidator(max_size_bytes=MAX_PDF_SIZE_BYTES)
+
+app = FastAPI(title="PDF Validation Service", version="1.0.0", lifespan=lifespan)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health")
@@ -24,30 +28,4 @@ async def health():
     return {"status": "healthy", "service": "validation-service"}
 
 
-async def call_extraction_service(file_bytes: bytes, filename: str) -> dict:
-    base_url = os.getenv("EXTRACTION_SERVICE_URL", "http://extraction.localhost")
-    url = f"{base_url}/extract"
-
-    retries = 3
-    for attempt in range(retries):
-        try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
-                files = {"file": (filename, file_bytes, "application/pdf")}
-                response = await client.post(url, files=files)
-                response.raise_for_status()
-                return response.json()
-        except (httpx.RequestError, httpx.HTTPStatusError) as e:
-            if attempt == retries - 1:
-                raise HTTPException(status_code=502, detail=f"Error communicating with extraction-service: {str(e)}")
-    return {}
-
-
-@app.post("/validate", response_model=ValidationResponse)
-async def validate_pdf(file: UploadFile) -> ValidationResponse:
-    if not file.filename or not file.filename.lower().endswith(".pdf"):
-        return ValidationResponse(valid=False, error="El archivo debe tener extensión .pdf")
-
-    content = await file.read()
-    result = validator.validate(content)
-
-    return ValidationResponse(valid=result.is_valid, error=result.error)
+app.include_router(router)
