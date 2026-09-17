@@ -1,0 +1,15 @@
+POST http://localhost:8080/extract
+Content-Type: application/pdf
+@/home/pprats/Documentos/UTN/Desarrollo de Software/proyectos/gestion-documentos/pdf-extractext-inspector/tests/stress/pdfs/2020-Scrum-Guide-Spanish-Latin-South-American.pdf
+
+POST http://localhost:8080/extract
+Content-Type: application/pdf
+@/home/pprats/Documentos/UTN/Desarrollo de Software/proyectos/gestion-documentos/pdf-extractext-inspector/tests/stress/pdfs/Essential-Kanban-Condensed-Spanish.pdf
+
+POST http://localhost:8080/extract
+Content-Type: application/pdf
+@/home/pprats/Documentos/UTN/Desarrollo de Software/proyectos/gestion-documentos/pdf-extractext-inspector/tests/stress/pdfs/Filosofia Lean.pdf
+
+POST http://localhost:8080/extract
+Content-Type: application/pdf
+@/home/pprats/Documentos/UTN/Desarrollo de Software/proyectos/gestion-documentos/pdf-extractext-inspector/tests/stress/pdfs/scrum_manager_historias_usuario.pdf
