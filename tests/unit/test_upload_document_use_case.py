@@ -14,7 +14,7 @@ from src.application.ports.text_extractor_port import TextExtractorPort
 from src.application.services.pdf_validator import PdfValidator
 from src.application.use_cases.upload_document import UploadDocumentUseCase
 from src.domain.entities.document import Document
-from src.domain.exceptions import DuplicateDocumentError, InvalidPdfFormatError
+from src.domain.exceptions import InvalidPdfFormatError
 from src.domain.repositories.document_repository import DocumentRepository
 
 
@@ -40,10 +40,10 @@ def make_use_case(repository, extractor, validator=None):
 
 
 @pytest.mark.asyncio
-async def test_upload_valid_pdf_returns_document(repository, extractor):
-    """Un PDF válido debe persistirse y devolverse como Document."""
+async def test_upload_valid_pdf_creates_document(repository, extractor):
+    """Un PDF nuevo debe extraerse, persistirse y reportarse como creado."""
     extractor.extract_text_from_bytes = AsyncMock(return_value="texto extraido")
-    repository.exists_by_checksum = AsyncMock(return_value=False)
+    repository.find_by_checksum = AsyncMock(return_value=None)
 
     async def fake_save(document: Document) -> Document:
         return document
@@ -55,29 +55,38 @@ async def test_upload_valid_pdf_returns_document(repository, extractor):
 
     result = await use_case.execute(pdf_bytes, "test.pdf")
 
-    assert isinstance(result, Document)
-    assert result.content == "texto extraido"
-    assert result.checksum == hashlib.sha256(pdf_bytes).hexdigest()
+    assert result.created is True
+    assert isinstance(result.document, Document)
+    assert result.document.content == "texto extraido"
+    assert result.document.checksum == hashlib.sha256(pdf_bytes).hexdigest()
+    extractor.extract_text_from_bytes.assert_called_once_with(pdf_bytes)
     repository.save.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_upload_duplicate_checksum_raises_error(repository, extractor):
-    """Un checksum existente debe lanzar DuplicateDocumentError."""
-    extractor.extract_text_from_bytes = AsyncMock(return_value="texto extraido")
-    repository.exists_by_checksum = AsyncMock(return_value=True)
+async def test_upload_duplicate_checksum_returns_cached_document(repository, extractor):
+    """Un checksum existente debe devolver el documento cacheado sin extraer."""
+    existing = Document(
+        id="11111111-1111-1111-1111-111111111111",
+        content="texto previamente extraido",
+        checksum=hashlib.sha256(b"%PDF-1.4" + b"y" * 50).hexdigest(),
+    )
+    repository.find_by_checksum = AsyncMock(return_value=existing)
 
     use_case = make_use_case(repository, extractor)
 
-    with pytest.raises(DuplicateDocumentError):
-        await use_case.execute(b"%PDF-1.4" + b"y" * 50, "duplicate.pdf")
+    result = await use_case.execute(b"%PDF-1.4" + b"y" * 50, "duplicate.pdf")
 
+    assert result.created is False
+    assert result.document is existing
+    extractor.extract_text_from_bytes.assert_not_called()
     repository.save.assert_not_called()
 
 
 @pytest.mark.asyncio
 async def test_upload_invalid_pdf_format_raises_error(repository, extractor):
     """Un archivo que no es PDF debe lanzar InvalidPdfFormatError."""
+    repository.find_by_checksum = AsyncMock(return_value=None)
     validator = PdfValidator(max_size_bytes=1024 * 1024)
     use_case = make_use_case(repository, extractor, validator=validator)
 

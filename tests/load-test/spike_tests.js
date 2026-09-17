@@ -3,7 +3,7 @@ import { Counter } from 'k6/metrics';
 import { check } from 'k6';
 
 const uploadsOk = new Counter('uploads_ok');
-const duplicates = new Counter('uploads_duplicated');
+const cacheHits = new Counter('cache_hits');
 
 export const options = {
     stages: [
@@ -15,7 +15,7 @@ export const options = {
 
 const BASE_URL = 'http://localhost:8000';
 
-http.setResponseCallback(http.expectedStatuses(201, 409));
+http.setResponseCallback(http.expectedStatuses(200, 201));
 
 // Carga de PDFs en modo binario durante la inicialización (init context de k6)
 const pdfFiles = [
@@ -33,12 +33,12 @@ export default function () {
         { file: http.file(pdf.data, pdf.name, 'application/pdf') },
     );
 
-    const ok = res.status === 201;
-    const dup = res.status === 409;
-    if (ok) uploadsOk.add(1);
-    if (dup) duplicates.add(1);
+    const created = res.status === 201;
+    const cached = res.status === 200;
+    if (created) uploadsOk.add(1);
+    if (cached) cacheHits.add(1);
 
     check(res, {
-        'upload procesado (201 o 409)': () => ok || dup,
+        'upload procesado (200 o 201)': () => created || cached,
     });
 }

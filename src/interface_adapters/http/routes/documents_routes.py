@@ -3,7 +3,7 @@
 from http import HTTPStatus
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile
 
 from src.application.use_cases.delete_document import DeleteDocumentUseCase
 from src.application.use_cases.get_document import GetDocumentUseCase
@@ -12,7 +12,6 @@ from src.application.use_cases.update_document import UpdateDocumentUseCase
 from src.application.use_cases.upload_document import UploadDocumentUseCase
 from src.domain.exceptions import (
     DocumentNotFoundError,
-    DuplicateDocumentError,
     InvalidPdfFormatError,
     PdfTooLargeError,
 )
@@ -31,35 +30,40 @@ from src.interface_adapters.http.schemas.document_schemas import (
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
-@router.post("/upload", response_model=DocumentResponse, status_code=HTTPStatus.CREATED)
+@router.post("/upload", response_model=DocumentResponse)
 async def upload_document(
     file: UploadFile,
+    response: Response,
     use_case: UploadDocumentUseCase = Depends(get_upload_use_case),
 ) -> DocumentResponse:
     """Sube y procesa un archivo PDF.
 
     Orquesta el flujo completo:
-    1. Valida formato y tamaño del PDF
-    2. Extrae texto del documento
-    3. Genera checksum y verifica duplicados
-    4. Persiste el documento
+    1. Detecta duplicados por checksum antes de procesar (cache)
+    2. Valida formato y tamaño del PDF
+    3. Extrae texto del documento
+    4. Genera checksum y verifica duplicados
+    5. Persiste el documento
 
     Args:
         file: Archivo PDF subido por el usuario
+        response: Response para fijar el status code dinámico (200/201)
 
     Returns:
         DocumentResponse: Documento procesado y guardado
 
     Raises:
         HTTPException: 400 si el PDF es inválido o excede tamaño
-        HTTPException: 409 si el documento ya existe (checksum duplicado)
         HTTPException: 500 si ocurre un error en el procesamiento
     """
     content = await file.read()
 
     try:
-        document = await use_case.execute(content, file.filename)
-        return DocumentResponse.from_entity(document)
+        result = await use_case.execute(content, file.filename)
+        response.status_code = (
+            HTTPStatus.CREATED if result.created else HTTPStatus.OK
+        )
+        return DocumentResponse.from_entity(result.document)
     except InvalidPdfFormatError as error:
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
@@ -69,11 +73,6 @@ async def upload_document(
         raise HTTPException(
             status_code=HTTPStatus.BAD_REQUEST,
             detail=str(error),
-        ) from error
-    except DuplicateDocumentError as error:
-        raise HTTPException(
-            status_code=HTTPStatus.CONFLICT,
-            detail=f"Document already exists with checksum: {error.checksum}",
         ) from error
 
 

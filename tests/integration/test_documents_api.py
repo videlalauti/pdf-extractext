@@ -188,27 +188,32 @@ class TestUploadDocument:
 
         assert response.status_code == HTTPStatus.BAD_REQUEST
 
-    def test_upload_duplicate_pdf_returns_409(self, client):
-        """POST /documents/upload con PDF duplicado debe retornar 409."""
+    def test_upload_duplicate_pdf_returns_cached_document(self, client):
+        """POST /documents/upload con PDF duplicado debe devolver el doc cacheado (200)."""
         pdf_content = self._create_simple_pdf()
 
-        # Primer upload - debe funcionar
+        # Primer upload - se crea el documento
         first_response = client.post(
             "/api/v1/documents/upload",
             files={"file": ("test.pdf", pdf_content, "application/pdf")},
         )
         assert first_response.status_code == HTTPStatus.CREATED
+        first_data = first_response.json()
 
-        # Segundo upload del mismo contenido - debe fallar con 409
+        # Segundo upload del mismo contenido - responde 200 con el mismo documento (cache hit)
         second_response = client.post(
             "/api/v1/documents/upload",
             files={"file": ("duplicate.pdf", pdf_content, "application/pdf")},
         )
 
-        assert second_response.status_code == HTTPStatus.CONFLICT
+        assert second_response.status_code == HTTPStatus.OK
         body = second_response.json()
-        assert "checksum" in body["detail"].lower()
-        assert "already exists" in body["detail"].lower()
+        assert body["id"] == first_data["id"]
+        assert body["checksum"] == first_data["checksum"]
+
+        # El contenido repetido no debe crear un documento nuevo
+        list_response = client.get("/api/v1/documents")
+        assert len(list_response.json()) == 1
 
     def test_upload_pdf_with_text_extraction(self, client):
         """POST /documents/upload debe extraer texto correctamente del PDF."""

@@ -10,13 +10,26 @@ del PDF y no realiza operaciones de I/O en disco.
 """
 
 import hashlib
+from dataclasses import dataclass
 from uuid import uuid4
 
 from src.application.services.pdf_text_extractor import PdfTextExtractor
 from src.application.services.pdf_validator import PdfValidator
 from src.domain.entities.document import Document
-from src.domain.exceptions import DuplicateDocumentError
 from src.domain.repositories.document_repository import DocumentRepository
+
+
+@dataclass(frozen=True)
+class UploadDocumentResult:
+    """Resultado del upload: documento resultante y si fue creado o cacheado.
+
+    Attributes:
+        document: Documento persistido o existente (cache hit).
+        created: True si se creó en este request, False si ya existía.
+    """
+
+    document: Document
+    created: bool
 
 
 class UploadDocumentUseCase:
@@ -56,34 +69,39 @@ class UploadDocumentUseCase:
         """Genera checksum SHA-256 del contenido."""
         return hashlib.sha256(pdf_bytes).hexdigest()
 
-    async def execute(self, pdf_bytes: bytes, filename: str = "") -> Document:
+    async def execute(self, pdf_bytes: bytes, filename: str = "") -> UploadDocumentResult:
         """Ejecuta el flujo completo de upload de PDF, puramente en memoria.
+
+        Los repetidos se resuelven antes de extraer: el checksum se calcula
+        primero y, si el documento ya existe, se devuelve el cacheado sin
+        volver a validar, extraer ni persistir.
 
         Args:
             pdf_bytes: Contenido binario del PDF a procesar.
             filename: Nombre del archivo subido (sin uso en la persistencia).
 
         Returns:
-            Document: Documento persistido con el texto extraído.
+            UploadDocumentResult: Documento resultante e indicador de si fue creado.
 
         Raises:
             InvalidPdfFormatError: Si el archivo no es un PDF válido
             PdfTooLargeError: Si el archivo excede el tamaño máximo permitido
-            DuplicateDocumentError: Si el checksum ya existe en el sistema
             PdfExtractionError: Si ocurre un error durante la extracción del texto
         """
-        # Paso 1: Validar el PDF (formato y tamaño)
+        # Paso 1: Verificar duplicados por checksum (el repositorio actúa como cache)
+        checksum = self._generate_checksum(pdf_bytes)
+        existing = await self._repository.find_by_checksum(checksum)
+        if existing is not None:
+            return UploadDocumentResult(document=existing, created=False)
+
+        # Paso 2: Validar el PDF (formato y tamaño)
         if self._validator is not None:
             self._validator.validate_or_raise(pdf_bytes)
 
-        # Paso 2: Extraer texto del PDF directamente desde bytes
+        # Paso 3: Extraer texto del PDF directamente desde bytes
         extracted_text = await self._extractor.extract_text_from_bytes(pdf_bytes)
-
-        # Paso 3: Verificar duplicados por checksum
-        checksum = self._generate_checksum(pdf_bytes)
-        if await self._repository.exists_by_checksum(checksum):
-            raise DuplicateDocumentError(checksum)
 
         # Paso 4: Persistir el documento
         document = Document(id=str(uuid4()), content=extracted_text, checksum=checksum)
-        return await self._repository.save(document)
+        saved = await self._repository.save(document)
+        return UploadDocumentResult(document=saved, created=True)

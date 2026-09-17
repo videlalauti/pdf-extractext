@@ -14,6 +14,7 @@ COPY --from=dependencies /app/.venv ./.venv
 
 COPY pyproject.toml uv.lock ./
 COPY src ./src
+COPY shared ./shared
 COPY main.py ./
 
 RUN uv sync --frozen --no-dev
@@ -37,6 +38,7 @@ WORKDIR /app
 
 COPY --from=builder --chown=appuser:appgroup /app/.venv /app/.venv
 COPY --from=builder --chown=appuser:appgroup /app/src ./src
+COPY --from=builder --chown=appuser:appgroup /app/shared ./shared
 COPY --from=builder --chown=appuser:appgroup /app/main.py ./
 
 RUN rm -rf /root/.cache /tmp/* /var/cache/apt/archives/* /var/lib/apt/lists/*

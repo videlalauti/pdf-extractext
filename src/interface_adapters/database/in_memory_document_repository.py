@@ -16,6 +16,7 @@ class InMemoryDocumentRepository(DocumentRepository):
     def __init__(self) -> None:
         """Inicializa el repositorio vacío."""
         self._documents: dict[str, Document] = {}
+        self._by_checksum: dict[str, Document] = {}
 
     async def save(self, document: Document) -> Document:
         """Guarda o actualiza un documento.
@@ -27,6 +28,7 @@ class InMemoryDocumentRepository(DocumentRepository):
             Document: Documento guardado.
         """
         self._documents[document.id] = document
+        self._by_checksum[document.checksum] = document
         return document
 
     async def find_by_id(self, document_id: UUID) -> Document | None:
@@ -59,7 +61,9 @@ class InMemoryDocumentRepository(DocumentRepository):
         """
         doc_id = str(document_id)
         if doc_id in self._documents:
-            del self._documents[doc_id]
+            document = self._documents.pop(doc_id)
+            if document.checksum in self._by_checksum:
+                del self._by_checksum[document.checksum]
             return True
         return False
 
@@ -72,4 +76,15 @@ class InMemoryDocumentRepository(DocumentRepository):
         Returns:
             bool: True si existe documento con ese checksum.
         """
-        return any(doc.checksum == checksum for doc in self._documents.values())
+        return checksum in self._by_checksum
+
+    async def find_by_checksum(self, checksum: str) -> Document | None:
+        """Retorna el documento con el checksum dado, si existe.
+
+        Args:
+            checksum: Checksum del archivo a buscar.
+
+        Returns:
+            Optional[Document]: Documento encontrado o None.
+        """
+        return self._by_checksum.get(checksum)

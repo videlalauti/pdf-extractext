@@ -73,3 +73,15 @@ class DocumentRepository(ABC):
             bool: True si existe un documento con ese checksum.
         """
         pass
+
+    @abstractmethod
+    async def find_by_checksum(self, checksum: str) -> Document | None:
+        """Retorna el documento con el checksum dado, si existe.
+
+        Args:
+            checksum: Checksum del archivo a buscar.
+
+        Returns:
+            Optional[Document]: Documento encontrado o None.
+        """
+        pass
